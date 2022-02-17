@@ -1,9 +1,8 @@
-using MLAPI;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class CCFModelControl : NetworkBehaviour
+public class CCFModelControl : MonoBehaviour
 {
     public CCFTree tree;
 
@@ -65,7 +64,9 @@ public class CCFModelControl : NetworkBehaviour
     public void LateStart(bool loadDefaults)
     {
         Debug.Log("Ontology start called");
-        if (!overrideNetwork && !IsClient) return;
+        if (!overrideNetwork) return;
+
+        Debug.LogWarning("On MLAPI compatible systems we shouldn't load the annotation dataset on the client!!");
 
         LoadCSVData(loadDefaults);
 
