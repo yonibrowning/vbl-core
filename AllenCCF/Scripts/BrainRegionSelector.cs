@@ -19,8 +19,8 @@ public class BrainRegionSelector : MonoBehaviour
         opaqueShader = Shader.Find("Shader Graphs/BrainRegionOpaque");
         transparentShader = Shader.Find("Shader Graphs/BrainRegionTransparent");
 
-        TrajectoryPlannerManager tpmanager;
-        trajectoryPlanner = GameObject.Find("main").TryGetComponent<TrajectoryPlannerManager>(out tpmanager);
+        //TrajectoryPlannerManager tpmanager;
+        //trajectoryPlanner = GameObject.Find("main").TryGetComponent<TrajectoryPlannerManager>(out tpmanager);
     }
 
     private void OnMouseDown() {
