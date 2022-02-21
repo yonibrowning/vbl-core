@@ -1214,7 +1214,7 @@ MonoBehaviour:
   probeRenderer: {fileID: 2814875528045951024}
   recordingRegionGOs:
   - {fileID: 2194279852132282093}
-  probeType: 1
+  probeType: 2
   probeTipT: {fileID: 3537694416159337911}
 --- !u!114 &4456597164778458637
 MonoBehaviour:

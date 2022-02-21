@@ -2520,7 +2520,7 @@ MonoBehaviour:
   - {fileID: 8790212291502270615}
   - {fileID: 2161067449959298110}
   - {fileID: 209146349789154571}
-  probeType: 2
+  probeType: 4
   probeTipT: {fileID: 4373075753628498810}
 --- !u!114 &8943063119080654576
 MonoBehaviour:
