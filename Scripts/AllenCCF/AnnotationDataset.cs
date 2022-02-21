@@ -6,7 +6,7 @@ public class AnnotationDataset
     private int[,,] annotations;
     private bool[,,] areaBorders;
 
-    public AnnotationDataset(string name, ushort[] data, uint[] map, byte[] ccfIndexMap)
+    public AnnotationDataset(ushort[] data, uint[] map, byte[] ccfIndexMap)
     {
         annotations = new int[baseSize[0], baseSize[1], baseSize[2]];
 

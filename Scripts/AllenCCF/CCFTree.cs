@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class CCFTree
 {
@@ -114,15 +116,25 @@ public class CCFTreeNode
         return loaded;
     }
 
-    public GameObject loadNodeModel(bool loadSeparatedModels)
+    public void loadNodeModel(bool loadSeparatedModels)
     {
         singleModel = !loadSeparatedModels;
 
         nodeModelGO = new GameObject(Name);
         nodeModelGO.transform.parent = brainModelParent.transform;
 
+        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>("AllenCCF/" + this.ID) : Addressables.LoadAssetAsync<Mesh>("AllenCCF/" + this.ID);
+        loadHandle.Completed += handle =>
+        {
+            LoadNodeModelCompleted((Mesh)handle.Result, loadSeparatedModels);
+        };
 
-        Mesh fullMesh = (loadSeparatedModels) ? Resources.Load<Mesh>("AllenCCF/" + this.ID + "L") : Resources.Load<Mesh>("AllenCCF/" + this.ID);
+        loaded = true;
+    }
+
+    private void LoadNodeModelCompleted(Mesh fullMesh, bool loadSeparatedModels)
+    {
+
         // Copy the mesh so that we can modify it without modifying the original
         localMesh = new Mesh();
         localMesh.vertices = fullMesh.vertices;
@@ -193,16 +205,6 @@ public class CCFTreeNode
 
             nodeMeshCenter = rend.bounds.center;
         }
-
-
-
-        // [TODO] remove these lines adding a collider and script --
-        // they're here for transparency demo purposes atm
-        //nodeModelGO.AddComponent<MeshCollider>();
-        //nodeModelGO.AddComponent<BrainRegionSelector>();
-
-        loaded = true;
-        return nodeModelGO;
     }
 
     public void ExplodeModel(Vector3 center, float percentage)
