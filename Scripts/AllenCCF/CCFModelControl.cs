@@ -40,12 +40,16 @@ public class CCFModelControl : MonoBehaviour
 
     [SerializeField] private float modelScale;
 
+    [SerializeField] private string addressableAssetPath;
+    private static string _addressableAssetPath;
     [SerializeField] private AssetReference ontologyStructureAsset;
 
     private Material defaultBrainRegionMaterial;
 
     private void Awake()
     {
+        _addressableAssetPath = addressableAssetPath;
+
         // Initialize
         ccfAreaColors = new Dictionary<int, Color>();
         ccfAreaColorsMinDepth = new Dictionary<int, Color>();
@@ -62,6 +66,11 @@ public class CCFModelControl : MonoBehaviour
         defaultDepth = highQualityDepth;
 
         useBerylRemap = false;
+    }
+
+    public static string GetAddressablePath()
+    {
+        return _addressableAssetPath;
     }
 
     public void LateStart(bool loadDefaults)

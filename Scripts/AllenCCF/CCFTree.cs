@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -10,15 +11,19 @@ public class CCFTree
     private Material brainRegionMaterial;
     private float scale;
     private Dictionary<int, CCFTreeNode> fastSearchDictionary;
+    private Transform brainModelParent;
 
     public CCFTree(int rootID, int atlasID, string rootName, float scale, Color color, Material material)
     {
+        brainModelParent = GameObject.Find("BrainModel").transform;
+
         this.scale = scale;
-        root = new CCFTreeNode(rootID, atlasID, 0, scale, null, rootName, "", color, material);
+        root = new CCFTreeNode(rootID, atlasID, 0, scale, null, rootName, "", color, material, brainModelParent);
         brainRegionMaterial = material;
 
         fastSearchDictionary = new Dictionary<int, CCFTreeNode>();
         fastSearchDictionary.Add(rootID, root);
+
     }
 
     public CCFTreeNode addNode(int parentID, int id, int atlasID, int depth, string name, string acronym, Color color)
@@ -30,7 +35,7 @@ public class CCFTree
         if (parentNode==null) {Debug.Log("Can't add new node: parent not found");return null;}
 
         // add the node if you succeeded
-        CCFTreeNode newNode = new CCFTreeNode(id, atlasID, depth, scale, parentNode, name, acronym, color, brainRegionMaterial);
+        CCFTreeNode newNode = new CCFTreeNode(id, atlasID, depth, scale, parentNode, name, acronym, color, brainRegionMaterial, brainModelParent);
         parentNode.appendNode(newNode);
 
         fastSearchDictionary.Add(id, newNode);
@@ -45,6 +50,8 @@ public class CCFTree
 
     public CCFTreeNode findNode(int ID)
     {
+        if (ID == -1)
+            return null;
         return fastSearchDictionary[ID];
     }
 
@@ -81,7 +88,7 @@ public class CCFTreeNode
     Vector3 originalPositionLeft;
     Vector3 originalPositionRight;
 
-    private GameObject brainModelParent;
+    private Transform brainModelParent;
     private Material material;
 
 
@@ -93,7 +100,7 @@ public class CCFTreeNode
     // each mesh has a left and right half, we want to separate these
     Mesh localMesh;
 
-    public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material)
+    public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
         this.ID = ID;
         this.atlasID = atlasID;
@@ -105,8 +112,8 @@ public class CCFTreeNode
         color.a = 1.0f;
         this.color = color;
         this.material = material;
+        this.brainModelParent = brainModelParent;
         childNodes = new List<CCFTreeNode>();
-        brainModelParent = GameObject.Find("BrainModel");
 
         loaded = false;
     }
@@ -116,23 +123,25 @@ public class CCFTreeNode
         return loaded;
     }
 
-    public void loadNodeModel(bool loadSeparatedModels)
+    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels)
     {
         singleModel = !loadSeparatedModels;
 
         nodeModelGO = new GameObject(Name);
-        nodeModelGO.transform.parent = brainModelParent.transform;
+        nodeModelGO.transform.parent = brainModelParent;
 
-        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>("AllenCCF/" + this.ID) : Addressables.LoadAssetAsync<Mesh>("AllenCCF/" + this.ID);
+        string path = CCFModelControl.GetAddressablePath() + this.ID;
+        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>(path + "L.obj") : Addressables.LoadAssetAsync<Mesh>(path + ".obj");
         loadHandle.Completed += handle =>
         {
-            LoadNodeModelCompleted((Mesh)handle.Result, loadSeparatedModels);
+            LoadNodeModelCompleted((Mesh)handle.Result);
         };
+        await loadHandle.Task;
 
-        loaded = true;
+        return this;
     }
 
-    private void LoadNodeModelCompleted(Mesh fullMesh, bool loadSeparatedModels)
+    private void LoadNodeModelCompleted(Mesh fullMesh)
     {
 
         // Copy the mesh so that we can modify it without modifying the original
@@ -144,7 +153,7 @@ public class CCFTreeNode
         //localMesh.colors = fullMesh.colors;
         localMesh.tangents = fullMesh.tangents;
 
-        if (loadSeparatedModels)
+        if (!singleModel)
         {
             // Create the left/right meshes
             nodeModelLeftGO = new GameObject(Name + "_L");
@@ -205,20 +214,8 @@ public class CCFTreeNode
 
             nodeMeshCenter = rend.bounds.center;
         }
-    }
 
-    public void ExplodeModel(Vector3 center, float percentage)
-    {
-        if (singleModel)
-            nodeModelGO.transform.localPosition = originalPosition + Vector3.Scale(nodeMeshCenter - center, explodeScale) * percentage;
-        else
-        {
-            Vector3 leftDistance = nodeMeshCenterLeft - center;
-            Debug.DrawRay(center, leftDistance * 10f);
-            leftDistance = Vector3.Scale(leftDistance, leftDistance);
-            nodeModelLeftGO.transform.localPosition = originalPositionLeft + Vector3.Scale(leftDistance, explodeScale) * percentage;
-            nodeModelRightGO.transform.localPosition = originalPositionRight + Vector3.Scale(nodeMeshCenterRight - center, explodeScale) * percentage;
-        }
+        loaded = true;
     }
 
     public Color GetColor()
@@ -233,7 +230,7 @@ public class CCFTreeNode
             Debug.LogError("Node model needs to be loaded before color can be set");
             return;
         }
-        this.color = newColor;
+        color = newColor;
         if (singleModel)
             nodeModelGO.GetComponent<Renderer>().material.SetColor("_Color", color);
         else
@@ -287,26 +284,6 @@ public class CCFTreeNode
             nodeModelRightGO.SetActive(rightVisible);
         }
     }
-
-    //public int buildToggleContent(GameObject toggleContentPanel, GameObject togglePrefab, int[] regionIDs, int curCount)
-    //{
-    //    // Instantiate this toggle if it's ID is in regionIDs
-    //    if (Array.IndexOf(regionIDs, this.ID) > -1) {
-    //        // Build my toggle content
-    //        GameObject toggleElement = GameObject.Instantiate(togglePrefab, toggleContentPanel.transform);
-    //        // Set the background color
-    //        toggleElement.GetComponent<Graphic>().color = color;
-    //        // Set the area name
-    //        Text label = toggleElement.transform.Find("Label").GetComponent<Text>();
-    //        label.text = Name;
-    //        curCount++;
-    //    }
-    //    foreach (CCFTreeNode node in childNodes)
-    //    {
-    //        curCount = node.buildToggleContent(toggleContentPanel, togglePrefab, regionIDs, curCount);
-    //    }
-    //    return curCount;
-    //}
 
     public int nodeCount()
     {
