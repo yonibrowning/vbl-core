@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 public class CCFModelControl : MonoBehaviour
 {
@@ -39,6 +40,8 @@ public class CCFModelControl : MonoBehaviour
 
     [SerializeField] private float modelScale;
 
+    [SerializeField] private AssetReference ontologyStructureAsset;
+
     private Material defaultBrainRegionMaterial;
 
     private void Awake()
@@ -69,28 +72,11 @@ public class CCFModelControl : MonoBehaviour
         Debug.LogWarning("On MLAPI compatible systems we shouldn't load the annotation dataset on the client!!");
 
         LoadCSVData(loadDefaults);
-
-        // The next two lines build the ontology content panel
-        //if (ontologyContentPanel)
-        //{
-        //    int ontologySize = buildOntology();
-        //    ontologyContentPanel.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, heightPerToggle * ontologySize);
-        //}
     }
 
     public void SetBeryl(bool state)
     {
         useBerylRemap = state;
-    }
-
-    /// <summary>
-    /// Build the ontology viewport toggles, so that users can turn on and off the different model areas
-    /// </summary>
-    int buildOntology()
-    {
-        //int ontologySize = tree.root.buildToggleContent(ontologyContentPanel, ontologyTogglePrefab, defaultNodes, 0);
-        //return ontologySize;
-        return 0;
     }
 
     public bool InDefaults(int ID)
@@ -104,63 +90,70 @@ public class CCFModelControl : MonoBehaviour
     /// </summary>
     void LoadCSVData(bool loadDefaults)
     {
-        // Load the CSV file
-        List<Dictionary<string, object>> data = CSVReader.Read("AllenCCF/ontology_structure_minimal");
-
-        for (var i=0; i<data.Count; i++)
+        Debug.Log("(CCFMC) Starting remote load of ontology structure file");
+        ontologyStructureAsset.LoadAssetAsync<TextAsset>().Completed += handle =>
         {
-            // get the values in the CSV file and add to the tree
-            int id = (int)data[i]["id"];
-            int atlas_id = (int)data[i]["atlas_id"];
-            int depth = (int)data[i]["depth"];
-            int parent = (int)data[i]["parent_structure_id"];
-            int beryl = (int)data[i]["beryl_id"];
-            int cosmos = (int)data[i]["cosmos_id"];
-            string name = (string)data[i]["name"];
-            string shortName = (string)data[i]["acronym"];
-            string hexColorString = data[i]["color_hex_code"].ToString();
-            Color color = ParseHexColor(hexColorString);
+            Debug.Log("(CCFMC) Ontology structure file loaded");
+            TextAsset text = handle.Result;
 
-            if (name.Equals("root"))
-            {
-                tree = new CCFTree(id, atlas_id, "root", modelScale, color, defaultBrainRegionMaterial);
-            }
-            else
-            {
-                // not the root, so add this node 
-                CCFTreeNode node = tree.addNode(parent, id, atlas_id, depth, name, shortName, color);
+            List<Dictionary<string, object>> data = CSVReader.ParseText(text.text);
+            Addressables.Release(handle);
 
-                // If this node should be visible by default, load it now
-                if (loadDefaults && defaultNodes.Contains(id))
+            for (var i = 0; i < data.Count; i++)
+            {
+                // get the values in the CSV file and add to the tree
+                int id = (int)data[i]["id"];
+                int atlas_id = (int)data[i]["atlas_id"];
+                int depth = (int)data[i]["depth"];
+                int parent = (int)data[i]["parent_structure_id"];
+                int beryl = (int)data[i]["beryl_id"];
+                int cosmos = (int)data[i]["cosmos_id"];
+                string name = (string)data[i]["name"];
+                string shortName = (string)data[i]["acronym"];
+                string hexColorString = data[i]["color_hex_code"].ToString();
+                Color color = ParseHexColor(hexColorString);
+
+                if (name.Equals("root"))
                 {
-                    node.loadNodeModel(false);
+                    tree = new CCFTree(id, atlas_id, "root", modelScale, color, defaultBrainRegionMaterial);
                 }
+                else
+                {
+                    // not the root, so add this node 
+                    CCFTreeNode node = tree.addNode(parent, id, atlas_id, depth, name, shortName, color);
 
-                // Keep track of the colors of areas in the dictionary, these are used to color e.g. neurons in different areas with different colors
-                if (!ccfAreaColors.ContainsKey(id))
-                    ccfAreaColors.Add(id, color);
-                // Now pop up the tree until we find the parent at the defaultDepth
-                // then add that color to the min depth list
-                CCFTreeNode minDepthParent = node;
-                while (minDepthParent.Depth > defaultDepth)
-                    minDepthParent = minDepthParent.Parent();
-                if (!ccfAreaColorsMinDepth.ContainsKey(id))
-                    ccfAreaColorsMinDepth.Add(id, ccfAreaColors[minDepthParent.ID]);
+                    // If this node should be visible by default, load it now
+                    if (loadDefaults && defaultNodes.Contains(id))
+                    {
+                        node.loadNodeModel(false);
+                    }
 
-                // Keep track of the acronyms as well
-                if (!ccfAreaAcronyms.ContainsKey(id))
-                    ccfAreaAcronyms.Add(id, shortName);
+                    // Keep track of the colors of areas in the dictionary, these are used to color e.g. neurons in different areas with different colors
+                    if (!ccfAreaColors.ContainsKey(id))
+                        ccfAreaColors.Add(id, color);
+                    // Now pop up the tree until we find the parent at the defaultDepth
+                    // then add that color to the min depth list
+                    CCFTreeNode minDepthParent = node;
+                    while (minDepthParent.Depth > defaultDepth)
+                        minDepthParent = minDepthParent.Parent();
+                    if (!ccfAreaColorsMinDepth.ContainsKey(id))
+                        ccfAreaColorsMinDepth.Add(id, ccfAreaColors[minDepthParent.ID]);
 
-                if (!ccfAreaNames.ContainsKey(id))
-                    ccfAreaNames.Add(id, name);
+                    // Keep track of the acronyms as well
+                    if (!ccfAreaAcronyms.ContainsKey(id))
+                        ccfAreaAcronyms.Add(id, shortName);
 
-                if (!berylRemap.ContainsKey(id))
-                    berylRemap.Add(id, beryl);
+                    if (!ccfAreaNames.ContainsKey(id))
+                        ccfAreaNames.Add(id, name);
 
-                if (!cosmosRemap.ContainsKey(id))
-                    cosmosRemap.Add(id, cosmos);
+                    if (!berylRemap.ContainsKey(id))
+                        berylRemap.Add(id, beryl);
+
+                    if (!cosmosRemap.ContainsKey(id))
+                        cosmosRemap.Add(id, cosmos);
+                }
             }
-        }
+        };
     }
 
     private Color ParseHexColor(string hexString)
