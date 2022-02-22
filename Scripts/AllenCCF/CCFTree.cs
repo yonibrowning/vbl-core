@@ -123,6 +123,24 @@ public class CCFTreeNode
         return loaded;
     }
 
+    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels)
+    {
+        singleModel = !loadSeparatedModels;
+
+        nodeModelGO = new GameObject(Name);
+        nodeModelGO.transform.parent = brainModelParent;
+
+        string path = CCFModelControl.GetAddressablePath() + this.ID;
+        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>(path + "L.obj") : Addressables.LoadAssetAsync<Mesh>(path + ".obj");
+        loadHandle.Completed += handle =>
+        {
+            LoadNodeModelCompleted((Mesh)handle.Result);
+        };
+
+        await loadHandle.Task;
+
+        return this;
+    }
     public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels, Action<AsyncOperationHandle> callback)
     {
         singleModel = !loadSeparatedModels;
