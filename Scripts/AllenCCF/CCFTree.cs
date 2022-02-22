@@ -123,7 +123,7 @@ public class CCFTreeNode
         return loaded;
     }
 
-    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels)
+    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels, Action<AsyncOperationHandle> callback)
     {
         singleModel = !loadSeparatedModels;
 
@@ -136,6 +136,8 @@ public class CCFTreeNode
         {
             LoadNodeModelCompleted((Mesh)handle.Result);
         };
+        loadHandle.Completed += callback;
+
         await loadHandle.Task;
 
         return this;

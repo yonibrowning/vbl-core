@@ -134,7 +134,7 @@ public class CCFModelControl : MonoBehaviour
                     // If this node should be visible by default, load it now
                     if (loadDefaults && defaultNodes.Contains(id))
                     {
-                        node.loadNodeModel(false);
+                        node.loadNodeModel(false, null);
                     }
 
                     // Keep track of the colors of areas in the dictionary, these are used to color e.g. neurons in different areas with different colors
