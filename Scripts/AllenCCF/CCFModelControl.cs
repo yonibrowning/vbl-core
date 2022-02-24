@@ -134,6 +134,7 @@ public class CCFModelControl : MonoBehaviour
                     // If this node should be visible by default, load it now
                     if (loadDefaults && defaultNodes.Contains(id))
                     {
+                        // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
                         node.loadNodeModel(false);
                     }
 
