@@ -46,6 +46,8 @@ public class CCFModelControl : MonoBehaviour
 
     private Material defaultBrainRegionMaterial;
 
+    private List<CCFTreeNode> defaultLoadedNodes;
+
     private void Awake()
     {
         _addressableAssetPath = addressableAssetPath;
@@ -64,6 +66,8 @@ public class CCFModelControl : MonoBehaviour
         //defaultNodes = lowQualityDefaults;
         //if (QualitySettings.GetQualityLevel() >= 5) { defaultNodes = highQualityDefaults; }
         defaultDepth = highQualityDepth;
+
+        defaultLoadedNodes = new List<CCFTreeNode>();
 
         useBerylRemap = false;
     }
@@ -135,7 +139,10 @@ public class CCFModelControl : MonoBehaviour
                     if (loadDefaults && defaultNodes.Contains(id))
                     {
                         // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
+                        #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                         node.loadNodeModel(false);
+                        defaultLoadedNodes.Add(node);
+                        #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                     }
 
                     // Keep track of the colors of areas in the dictionary, these are used to color e.g. neurons in different areas with different colors
@@ -164,6 +171,11 @@ public class CCFModelControl : MonoBehaviour
                 }
             }
         };
+    }
+
+    public List<CCFTreeNode> DefaultLoadedNodes()
+    {
+        return defaultLoadedNodes;
     }
 
     private Color ParseHexColor(string hexString)

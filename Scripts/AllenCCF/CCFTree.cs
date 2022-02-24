@@ -74,19 +74,12 @@ public class CCFTreeNode
     private Color color;
     private float scale;
 
-    private GameObject ontologyToggle;
-
     private bool singleModel;
     private GameObject nodeModelGO;
     private Vector3 nodeMeshCenter;
-    private Vector3 originalPosition;
 
     private GameObject nodeModelLeftGO;
     private GameObject nodeModelRightGO;
-    Vector3 nodeMeshCenterLeft;
-    Vector3 nodeMeshCenterRight;
-    Vector3 originalPositionLeft;
-    Vector3 originalPositionRight;
 
     private Transform brainModelParent;
     private Material material;
@@ -192,9 +185,6 @@ public class CCFTreeNode
             leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelLeftGO.GetComponent<MeshFilter>().mesh = localMesh;
 
-            nodeMeshCenterLeft = leftRend.bounds.center;
-            originalPositionLeft = nodeModelLeftGO.transform.localPosition;
-
             // Create the right meshes
             nodeModelRightGO = new GameObject(Name + "_R");
             nodeModelRightGO.transform.parent = nodeModelGO.transform;
@@ -212,15 +202,12 @@ public class CCFTreeNode
             rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelRightGO.GetComponent<MeshFilter>().mesh = localMesh;
 
-            nodeMeshCenterRight = rightRend.bounds.center;
-            originalPositionRight = nodeModelRightGO.transform.localPosition;
         }
         else
         {
             nodeModelGO.transform.localScale = new Vector3(scale, scale, scale);
             nodeModelGO.transform.Translate(5.7f, 4f, -6.6f);
             nodeModelGO.transform.Rotate(0f, -90f, -180f);
-            originalPosition = nodeModelGO.transform.localPosition;
             nodeModelGO.AddComponent<MeshFilter>();
             nodeModelGO.AddComponent<MeshRenderer>();
             nodeModelGO.layer = 13;
@@ -277,6 +264,22 @@ public class CCFTreeNode
         }
 
         SetColor(color);
+    }
+
+    public void SetShaderProperty(string property, Vector4 value)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before material properties can be set");
+            return;
+        }
+        if (singleModel)
+            nodeModelGO.GetComponent<Renderer>().material.SetVector(property, value);
+        else
+        {
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
+            nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
+        }
     }
 
     public void SetNodeModelVisibility(bool visible)
