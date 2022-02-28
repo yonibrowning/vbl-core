@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -16,8 +17,7 @@ public class CCFModelControl : MonoBehaviour
     //private int[] lowQualityDefaults = new int[] { 315, 343, 698, 1089, 512 };
     private int highQualityDepth = 6;
     private int[] highQualityDefaults = new int[] {184, 500, 453, 1057, 677, 247, 669, 31, 972, 44, 714, 95, 254, 22, 541, 922, 698, 895, 1089, 703, 623, 343, 512};
-    //private int berylDepth;
-    //private int[] berylDefaults = new int[] { };
+    [SerializeField] private bool loadBerylDepth;
 
     private int[] defaultNodes;
     private int defaultDepth;
@@ -47,6 +47,13 @@ public class CCFModelControl : MonoBehaviour
     private Material defaultBrainRegionMaterial;
 
     private List<CCFTreeNode> defaultLoadedNodes;
+    private TaskCompletionSource<bool> defaultLoadedTaskSource;
+    private Task defaultLoadedTask;
+    private List<Task<CCFTreeNode>> defaultLoadedNodesTasks;
+
+    private int[] missing = { 738, 995 };
+
+    private bool started;
 
     private void Awake()
     {
@@ -70,6 +77,30 @@ public class CCFModelControl : MonoBehaviour
         defaultLoadedNodes = new List<CCFTreeNode>();
 
         useBerylRemap = false;
+
+        // Setup async tasks
+        defaultLoadedTaskSource = new TaskCompletionSource<bool>();
+        defaultLoadedTask = defaultLoadedTaskSource.Task;
+        defaultLoadedNodesTasks = new List<Task<CCFTreeNode>>();
+    }
+
+    private void Update()
+    {
+        if (started && (defaultLoadedNodesTasks.Count > 0))
+        {
+            for (int i = defaultLoadedNodesTasks.Count-1; i >= 0; i--)
+            {
+                if (defaultLoadedNodesTasks[i].IsCompleted)
+                    defaultLoadedNodesTasks.RemoveAt(i);
+            }
+            if (defaultLoadedNodesTasks.Count == 0)
+                defaultLoadedTaskSource.SetResult(true);
+        }
+    }
+
+    public Task GetDefaultLoaded()
+    {
+        return defaultLoadedTask;
     }
 
     public static string GetAddressablePath()
@@ -85,6 +116,7 @@ public class CCFModelControl : MonoBehaviour
         Debug.LogWarning("On MLAPI compatible systems we shouldn't load the annotation dataset on the client!!");
 
         LoadCSVData(loadDefaults);
+        started = true;
     }
 
     public void SetBeryl(bool state)
@@ -136,13 +168,23 @@ public class CCFModelControl : MonoBehaviour
                     CCFTreeNode node = tree.addNode(parent, id, atlas_id, depth, name, shortName, color);
 
                     // If this node should be visible by default, load it now
-                    if (loadDefaults && defaultNodes.Contains(id))
+                    if (loadDefaults)
                     {
-                        // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
-                        #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                        node.loadNodeModel(false);
-                        defaultLoadedNodes.Add(node);
-                        #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                        if (loadBerylDepth)
+                        {
+                            if (id == beryl && !missing.Contains(id))
+                            {
+                                defaultLoadedNodesTasks.Add(node.loadNodeModel(true));
+                                defaultLoadedNodes.Add(node);
+                            }
+                        }
+                        else if (defaultNodes.Contains(id))
+                        {
+                            // [TODO: Improve this code to provide a way to read out whether or not all of the files are loaded]
+                            // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
+                            defaultLoadedNodesTasks.Add(node.loadNodeModel(false));
+                            defaultLoadedNodes.Add(node);
+                        }
                     }
 
                     // Keep track of the colors of areas in the dictionary, these are used to color e.g. neurons in different areas with different colors
@@ -173,7 +215,7 @@ public class CCFModelControl : MonoBehaviour
         };
     }
 
-    public List<CCFTreeNode> DefaultLoadedNodes()
+    public List<CCFTreeNode> GetDefaultLoadedNodes()
     {
         return defaultLoadedNodes;
     }

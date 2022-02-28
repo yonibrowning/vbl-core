@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceLocations;
 
 public class CCFTree
 {
@@ -15,7 +16,7 @@ public class CCFTree
 
     public CCFTree(int rootID, int atlasID, string rootName, float scale, Color color, Material material)
     {
-        brainModelParent = GameObject.Find("BrainModel").transform;
+        brainModelParent = GameObject.Find("BrainAreas").transform;
 
         this.scale = scale;
         root = new CCFTreeNode(rootID, atlasID, 0, scale, null, rootName, "", color, material, brainModelParent);
@@ -123,8 +124,13 @@ public class CCFTreeNode
         nodeModelGO = new GameObject(Name);
         nodeModelGO.transform.parent = brainModelParent;
 
-        string path = CCFModelControl.GetAddressablePath() + this.ID;
-        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>(path + "L.obj") : Addressables.LoadAssetAsync<Mesh>(path + ".obj");
+        string path = (loadSeparatedModels) ? CCFModelControl.GetAddressablePath() + this.ID + "L.obj" : CCFModelControl.GetAddressablePath() + this.ID + ".obj";
+        AsyncOperationHandle<IList<IResourceLocation>> handle = Addressables.LoadResourceLocationsAsync(path);
+
+        // [TODO: Some files don't exist at all, so they just hang here? Seems wrong]
+        await handle.Task;
+
+        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
         loadHandle.Completed += handle =>
         {
             LoadNodeModelCompleted((Mesh)handle.Result);
@@ -172,6 +178,8 @@ public class CCFTreeNode
             nodeModelLeftGO = new GameObject(Name + "_L");
             nodeModelLeftGO.transform.parent = nodeModelGO.transform;
             nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
+            //nodeModelLeftGO.transform.localPosition = Vector3.zero;
+            //nodeModelLeftGO.transform.localRotation = Quaternion.identity;
             nodeModelLeftGO.transform.Translate(5.7f, 4f, -6.6f);
             nodeModelLeftGO.transform.Rotate(0f, -90f, -180f);
             nodeModelLeftGO.AddComponent<MeshFilter>();
@@ -189,6 +197,8 @@ public class CCFTreeNode
             nodeModelRightGO = new GameObject(Name + "_R");
             nodeModelRightGO.transform.parent = nodeModelGO.transform;
             nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
+            //nodeModelRightGO.transform.localPosition = Vector3.zero;
+            //nodeModelRightGO.transform.localRotation = Quaternion.identity;
             nodeModelRightGO.transform.Translate(-5.7f, 4f, -6.6f);
             nodeModelRightGO.transform.Rotate(0f, -90f, -180f);
             nodeModelRightGO.AddComponent<MeshFilter>();
@@ -281,6 +291,23 @@ public class CCFTreeNode
             nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
         }
     }
+
+    public void SetShaderProperty(string property, float value)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before material properties can be set");
+            return;
+        }
+        if (singleModel)
+            nodeModelGO.GetComponent<Renderer>().material.SetFloat(property, value);
+        else
+        {
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
+            nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
+        }
+    }
+
 
     public void SetNodeModelVisibility(bool visible)
     {
