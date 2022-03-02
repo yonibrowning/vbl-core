@@ -72,6 +72,7 @@ public class CCFTreeNode
     public string Name { get; }
     public string ShortName { get; }
     public int Depth { get; }
+    private Color defaultColor;
     private Color color;
     private float scale;
 
@@ -105,6 +106,7 @@ public class CCFTreeNode
         this.ShortName = ShortName;
         color.a = 1.0f;
         this.color = color;
+        defaultColor = new Color(color.r, color.g, color.b, color.a);
         this.material = material;
         this.brainModelParent = brainModelParent;
         childNodes = new List<CCFTreeNode>();
@@ -162,7 +164,6 @@ public class CCFTreeNode
 
     private void LoadNodeModelCompleted(Mesh fullMesh)
     {
-
         // Copy the mesh so that we can modify it without modifying the original
         localMesh = new Mesh();
         localMesh.vertices = fullMesh.vertices;
@@ -178,10 +179,6 @@ public class CCFTreeNode
             nodeModelLeftGO = new GameObject(Name + "_L");
             nodeModelLeftGO.transform.parent = nodeModelGO.transform;
             nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
-            //nodeModelLeftGO.transform.localPosition = Vector3.zero;
-            //nodeModelLeftGO.transform.localRotation = Quaternion.identity;
-            nodeModelLeftGO.transform.Translate(5.7f, 4f, -6.6f);
-            nodeModelLeftGO.transform.Rotate(0f, -90f, -180f);
             nodeModelLeftGO.AddComponent<MeshFilter>();
             nodeModelLeftGO.AddComponent<MeshRenderer>();
             nodeModelLeftGO.layer = 13;
@@ -192,15 +189,12 @@ public class CCFTreeNode
             leftRend.receiveShadows = false;
             leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelLeftGO.GetComponent<MeshFilter>().mesh = localMesh;
+            nodeModelLeftGO.SetActive(false);
 
             // Create the right meshes
             nodeModelRightGO = new GameObject(Name + "_R");
             nodeModelRightGO.transform.parent = nodeModelGO.transform;
             nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
-            //nodeModelRightGO.transform.localPosition = Vector3.zero;
-            //nodeModelRightGO.transform.localRotation = Quaternion.identity;
-            nodeModelRightGO.transform.Translate(-5.7f, 4f, -6.6f);
-            nodeModelRightGO.transform.Rotate(0f, -90f, -180f);
             nodeModelRightGO.AddComponent<MeshFilter>();
             nodeModelRightGO.AddComponent<MeshRenderer>();
             nodeModelRightGO.layer = 13;
@@ -211,13 +205,11 @@ public class CCFTreeNode
             rightRend.receiveShadows = false;
             rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelRightGO.GetComponent<MeshFilter>().mesh = localMesh;
-
+            nodeModelRightGO.SetActive(false);
         }
         else
         {
             nodeModelGO.transform.localScale = new Vector3(scale, scale, scale);
-            nodeModelGO.transform.Translate(5.7f, 4f, -6.6f);
-            nodeModelGO.transform.Rotate(0f, -90f, -180f);
             nodeModelGO.AddComponent<MeshFilter>();
             nodeModelGO.AddComponent<MeshRenderer>();
             nodeModelGO.layer = 13;
@@ -230,6 +222,7 @@ public class CCFTreeNode
             nodeModelGO.GetComponent<MeshFilter>().mesh = localMesh;
 
             nodeMeshCenter = rend.bounds.center;
+            nodeModelGO.SetActive(false);
         }
 
         loaded = true;
@@ -238,6 +231,16 @@ public class CCFTreeNode
     public Color GetColor()
     {
         return color;
+    }
+
+    public Color GetDefaultColor()
+    {
+        return color;
+    }
+
+    public void ResetColor()
+    {
+        SetColor(defaultColor);
     }
 
     public void SetColor(Color newColor)
@@ -254,6 +257,31 @@ public class CCFTreeNode
         {
             nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", color);
             nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", color);
+        }
+    }
+
+    public void SetColorOneSided(Color newColor, bool leftSide)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before color can be set");
+            return;
+        }
+        if (singleModel)
+        {
+            Debug.LogError("Can't set one-sided colors when loading single models.");
+            return;
+        }
+
+        color = newColor;
+        if (leftSide)
+        {
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", color);
+            nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", defaultColor);
+        }
+        else
+        {
+            throw new NotImplementedException();
         }
     }
 
