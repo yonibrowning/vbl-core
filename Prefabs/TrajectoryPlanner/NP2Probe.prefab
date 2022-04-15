@@ -634,8 +634,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2194279852595652025}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.100001, y: 69.600006, z: -5.7000027}
-  m_LocalScale: {x: 3, y: 30, z: 3}
+  m_LocalPosition: {x: -0.5, y: 112.3, z: -6.2}
+  m_LocalScale: {x: 7, y: 30, z: 7}
   m_Children: []
   m_Father: {fileID: 2194279851576804864}
   m_RootOrder: 2
@@ -659,7 +659,7 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5000001
-  m_Height: 2
+  m_Height: 2.27
   m_Direction: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!114 &8820965871439173408
@@ -1201,12 +1201,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   recordHeightSpeed: 0.01
-  moveSpeed: 1
-  rotSpeed: 5
+  keyHoldDelay: 0.3
   probeColliders:
   - {fileID: 2194279852442524702}
   - {fileID: 2194279851657991016}
   - {fileID: 2194279852595652007}
+  - {fileID: 2890943192668282077}
   probeUIManagers:
   - {fileID: 4456597164778458637}
   rotateAround: {fileID: 7221844362321588931}
