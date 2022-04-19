@@ -79,7 +79,7 @@ public class VolumeDatasetManager : MonoBehaviour
 
     // IBL Coverage map
     [SerializeField] private AssetReference coverageIndexes;
-    private ushort[] coverageIndexes_shorts;
+    private byte[] coverageIndexes_bytes;
     private uint[] coverageMap = new uint[] { 0, 1, 2 };
 
     public async Task<bool> LoadIBLCoverage()
@@ -93,15 +93,14 @@ public class VolumeDatasetManager : MonoBehaviour
         await coverageLoader.Task;
 
         // When all loaded, copy the data locally using Buffer.BlockCopy()
-        coverageIndexes_shorts = new ushort[coverageLoader.Result.bytes.Length / 2];
-        Buffer.BlockCopy(coverageLoader.Result.bytes, 0, coverageIndexes_shorts, 0, coverageLoader.Result.bytes.Length);
+        coverageIndexes_bytes = coverageLoader.Result.bytes;
         Addressables.Release(coverageLoader);
 
 
         Debug.Log("(VDManager) Coverage map files loaded, building dataset");
 
-        coverageDataset = new VolumetricDataset(new int[] { 528, 320, 456 }, datasetIndexes_bytes, coverageMap, coverageIndexes_shorts);
-        coverageIndexes_shorts = null;
+        coverageDataset = new VolumetricDataset(new int[] { 528, 320, 456 }, datasetIndexes_bytes, coverageMap, coverageIndexes_bytes);
+        coverageIndexes_bytes = null;
 
         return finished;
     }
