@@ -2315,7 +2315,7 @@ MonoBehaviour:
   probePanelPrefab: {fileID: 2746806081652951299, guid: c969e4be2f14f8f4dae11675354d4dbc, type: 3}
   probeController: {fileID: 8943063119080654583}
   probeTip: {fileID: 8132741541750793547}
-  order: 0
+  order: 3
 --- !u!114 &1545133269317581810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2331,7 +2331,7 @@ MonoBehaviour:
   probePanelPrefab: {fileID: 2746806081652951299, guid: c969e4be2f14f8f4dae11675354d4dbc, type: 3}
   probeController: {fileID: 8943063119080654583}
   probeTip: {fileID: 2792236579036533825}
-  order: 1
+  order: 2
 --- !u!114 &1889671296123998709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2347,7 +2347,7 @@ MonoBehaviour:
   probePanelPrefab: {fileID: 2746806081652951299, guid: c969e4be2f14f8f4dae11675354d4dbc, type: 3}
   probeController: {fileID: 8943063119080654583}
   probeTip: {fileID: 1823020946817655767}
-  order: 2
+  order: 1
 --- !u!114 &3819742175937011324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2363,7 +2363,7 @@ MonoBehaviour:
   probePanelPrefab: {fileID: 2746806081652951299, guid: c969e4be2f14f8f4dae11675354d4dbc, type: 3}
   probeController: {fileID: 8943063119080654583}
   probeTip: {fileID: 2757399421754738177}
-  order: 3
+  order: 0
 --- !u!1001 &3708168665352534330
 PrefabInstance:
   m_ObjectHideFlags: 0

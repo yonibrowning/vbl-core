@@ -109,4 +109,9 @@ public class VolumeDatasetManager : MonoBehaviour
     {
         return coverageDataset;
     }
+
+    //public Texture3D BuildTexture3D(VolumetricDataset dataset)
+    //{
+
+    //}
 }
