@@ -51,9 +51,9 @@ public class CCFTree
 
     public CCFTreeNode findNode(int ID)
     {
-        if (ID == -1)
-            return null;
-        return fastSearchDictionary[ID];
+        if (fastSearchDictionary.ContainsKey(ID))
+            return fastSearchDictionary[ID];
+        return null;
     }
 
     [Obsolete("Deprecated in favor of findNode with dictionary")]
@@ -147,7 +147,7 @@ public class CCFTreeNode
         singleModel = !loadSeparatedModels;
 
         nodeModelGO = new GameObject(Name);
-        nodeModelGO.transform.parent = brainModelParent;
+        nodeModelGO.transform.SetParent(brainModelParent);
 
         string path = CCFModelControl.GetAddressablePath() + this.ID;
         AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>(path + "L.obj") : Addressables.LoadAssetAsync<Mesh>(path + ".obj");
@@ -177,7 +177,7 @@ public class CCFTreeNode
         {
             // Create the left/right meshes
             nodeModelLeftGO = new GameObject(Name + "_L");
-            nodeModelLeftGO.transform.parent = nodeModelGO.transform;
+            nodeModelLeftGO.transform.SetParent(nodeModelGO.transform);
             nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
             nodeModelLeftGO.AddComponent<MeshFilter>();
             nodeModelLeftGO.AddComponent<MeshRenderer>();
@@ -193,7 +193,7 @@ public class CCFTreeNode
 
             // Create the right meshes
             nodeModelRightGO = new GameObject(Name + "_R");
-            nodeModelRightGO.transform.parent = nodeModelGO.transform;
+            nodeModelRightGO.transform.SetParent(nodeModelGO.transform);
             nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
             nodeModelRightGO.AddComponent<MeshFilter>();
             nodeModelRightGO.AddComponent<MeshRenderer>();

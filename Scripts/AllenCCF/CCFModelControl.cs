@@ -220,6 +220,11 @@ public class CCFModelControl : MonoBehaviour
         return defaultLoadedNodes;
     }
 
+    public CCFTreeNode GetNode(int ID)
+    {
+        return tree.findNode(ID);
+    }
+
     private Color ParseHexColor(string hexString)
     {
         Color color;
@@ -322,10 +327,8 @@ public class CCFModelControl : MonoBehaviour
         if (node != null)
             ChangeMaterial(node, materialName);
     }
-    public async void ChangeMaterial(CCFTreeNode node, string materialName)
+    public void ChangeMaterial(CCFTreeNode node, string materialName)
     {
-        if (!node.IsLoaded())
-            await node.loadNodeModel(false);
         if (brainRegionMaterialNames.Contains(materialName))
             node.SetMaterial(brainRegionMaterials[brainRegionMaterialNames.IndexOf(materialName)]);
         else
