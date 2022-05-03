@@ -220,6 +220,11 @@ public class CCFModelControl : MonoBehaviour
         return defaultLoadedNodes;
     }
 
+    public CCFTreeNode GetNode(int ID)
+    {
+        return tree.findNode(ID);
+    }
+
     private Color ParseHexColor(string hexString)
     {
         Color color;

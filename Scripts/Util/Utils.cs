@@ -6,15 +6,30 @@ using System.Linq;
 using System.Text;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
 using Random = UnityEngine.Random;
 
 public class Utils : MonoBehaviour
 {
-    private void Start()
+    [SerializeField] AssetReference flatironInfoAsset;
+    string token;
+
+    private void Awake()
     {
-        //StartCoroutine(FlatironTest("https://ibl.flatironinstitute.org/cortexlab/Subjects/KS046/2020-12-02/001/alf/lick.times.npy"));
+        LoadFlatironInfo();
     }
+
+    private void LoadFlatironInfo()
+    {
+        var op = Addressables.LoadAssetAsync<TextAsset>(flatironInfoAsset);
+        TextAsset text = op.WaitForCompletion();
+
+        string[] lines = text.text.Split('\n');
+
+        token = lines[0];
+        Addressables.Release(op);
+    } 
 
     public Vector3 WorldSpace2apdvlr(Vector3 point)
     {
@@ -156,22 +171,21 @@ public class Utils : MonoBehaviour
 
 
 
-    public void LoadFlatIronData(string eid, string dataType, string uri, Action<string, string, Array> callback)
+    public void LoadFlatIronData(string dataType, string uri, Action<string, Array> callback)
     {
-        StartCoroutine(FlationRequestNPY(eid, dataType, uri, callback));
+        StartCoroutine(FlationRequestNPY(dataType, uri, callback));
     }
 
-    public IEnumerator FlationRequestNPY(string eid, string dataType, string uri, Action<string, string, Array> callback)
+    public IEnumerator FlationRequestNPY(string dataType, string uri, Action<string, Array> callback)
     {
         Debug.Log("A Coroutine requested was started for: " + uri);
 
         using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
         {
             // Request and wait for the desired page.
-            var username = "iblmember";
-            var password = "GrayMatter19";
             string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                                           .GetBytes(username + ":" + password));
+                                           .GetBytes(token));
+                                           //.GetBytes(username + ":" + password));
             webRequest.SetRequestHeader("Authorization", "Basic " + encoded);
             webRequest.SetRequestHeader("Encoding", "gzip");
             yield return webRequest.SendWebRequest();
@@ -193,54 +207,12 @@ public class Utils : MonoBehaviour
                     Debug.Log(webRequest.downloadedBytes);
                     byte[] data = webRequest.downloadHandler.data;
                     MemoryStream stream = new MemoryStream(data);
-                    callback(eid, dataType, LoadNPY(stream));
+                    callback(dataType, LoadNPY(stream));
                     break;
             }
         }
 
         Debug.Log("GetRequest complete on URL" + uri);
-    }
-
-    public IEnumerator FlatironTest(string uri)
-    {
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
-        {
-            // Request and wait for the desired page.
-            var username = "iblmember";
-            var password = "GrayMatter19";
-            string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                                           .GetBytes(username + ":" + password));
-            webRequest.SetRequestHeader("Authorization", "Basic " + encoded);
-            yield return webRequest.SendWebRequest();
-
-            string[] pages = uri.Split('/');
-            int page = pages.Length - 1;
-
-            switch (webRequest.result)
-            {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.Success:
-                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
-                    Debug.Log(webRequest.downloadedBytes);
-                    byte[] data = webRequest.downloadHandler.data;
-                    MemoryStream stream = new MemoryStream(data);
-                    Array output = LoadNPY(stream);
-
-                    
-                    for (int i =0; i<100; i++)
-                    {
-                        Debug.Log(output.GetValue(i));
-                    }
-
-                    break;
-            }
-        }
     }
 
     private static Array LoadNPY(Stream stream)

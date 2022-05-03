@@ -7,7 +7,7 @@ public class AnnotationDataset : VolumetricDataset
     public AnnotationDataset(int[] size, ushort[] data, uint[] map, byte[] ccfIndexMap) : base(size, ccfIndexMap, map, data)
     {
         // pass
-        ComputeBorders();
+        //ComputeBorders();
     }
 
     public void ComputeBorders()
