@@ -273,15 +273,13 @@ public class CCFTreeNode
             return;
         }
 
-        color = newColor;
         if (leftSide)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", color);
-            nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", defaultColor);
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
         }
         else
         {
-            throw new NotImplementedException();
+            nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
         }
     }
 
