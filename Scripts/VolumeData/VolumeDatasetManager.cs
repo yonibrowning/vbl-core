@@ -88,6 +88,9 @@ public class VolumeDatasetManager : MonoBehaviour
 
         Debug.Log("(VDManager) Coverage map loading");
 
+        if (coverageIndexes == null)
+            return false;
+
         AsyncOperationHandle<TextAsset> coverageLoader = coverageIndexes.LoadAssetAsync<TextAsset>();
 
         await coverageLoader.Task;
