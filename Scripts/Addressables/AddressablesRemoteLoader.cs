@@ -72,7 +72,11 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
         await loadHandle.Task;
 
-        return (Mesh)loadHandle.Result;
+        Mesh returnMesh = (Mesh)loadHandle.Result;
+        Addressables.Release(pathHandle);
+        Addressables.Release(loadHandle);
+
+        return returnMesh;
     }
 
     public static async Task<Texture3D> LoadAnnotationTexture()
@@ -86,7 +90,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Texture3D>(path);
         await loadHandle.Task;
 
-        return (Texture3D)loadHandle.Result;
+        Texture3D returnTexture = (Texture3D)loadHandle.Result;
+        Addressables.Release(loadHandle);
+
+        return returnTexture;
     }
 
     public static async Task<TextAsset> LoadVolumeIndexes()
@@ -99,7 +106,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(volumePath);
         await loadHandle.Task;
 
-        return (TextAsset)loadHandle.Result;
+        TextAsset resultText = (TextAsset)loadHandle.Result;
+        Addressables.Release(loadHandle);
+
+        return resultText;
     }
 
     /// <summary>
@@ -123,6 +133,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
         dataLoaders.Add(mapHandle.Task);
         await Task.WhenAll(dataLoaders);
 
-        return new List<TextAsset>() { (TextAsset)indexHandle.Result, (TextAsset)mapHandle.Result };
+        List<TextAsset> returnList = new List<TextAsset>() { (TextAsset)indexHandle.Result, (TextAsset)mapHandle.Result };
+        Addressables.Release(indexHandle);
+        Addressables.Release(mapHandle);
+
+        return returnList;
     } 
 }
