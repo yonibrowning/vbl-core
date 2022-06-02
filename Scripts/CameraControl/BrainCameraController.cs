@@ -9,7 +9,6 @@ public class BrainCameraController : MonoBehaviour
     [SerializeField] private Camera brainCamera;
     [SerializeField] private GameObject brainCameraRotator;
     [SerializeField] private GameObject brain;
-    [SerializeField] private TP_TrajectoryPlannerManager tpmanager;
 
     private Vector3 initialCameraRotatorPosition;
 
