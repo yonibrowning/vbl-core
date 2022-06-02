@@ -1,14 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class AddressablesRemoteTest : MonoBehaviour
 {
-    [SerializeField] AddressablesRemoteLoader remoteLoader;
 
     // Start is called before the first frame update
     void Start()
     {
-        remoteLoader.LoadCCFMesh("8.obj", mesh => { });
+        AsyncTest();
+    }
+
+    public async void AsyncTest()
+    {
+        Task<Mesh> handle = AddressablesRemoteLoader.LoadCCFMesh("8.obj");
+        await handle;
+
+        Debug.Log("Loaded 8.obj");
+
+        Task<Texture3D> handleTex = AddressablesRemoteLoader.LoadAnnotationTexture();
+        await handleTex;
+
+        Debug.Log("Loaded texture");
+
+        Task<TextAsset> volumeHandle = AddressablesRemoteLoader.LoadVolumeIndexes();
+        await volumeHandle;
+
+        Debug.Log("Loaded volume indices");
     }
 }

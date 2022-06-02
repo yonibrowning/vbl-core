@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -15,7 +14,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
 
-    private Task<bool> catalogLoadedTask;
+    private static Task<bool> catalogLoadedTask;
 
     // Start is called before the first frame update
     void Awake()
@@ -28,7 +27,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
         else
             Debug.LogError("Running on a platform that does NOT have a built Addressables Storage bundle");
 
-        catalogLoadedTask = AsyncStart();
+        Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
+        catalogLoadedTask = AsyncAwake();
     }
 
     public string GetAddressablesPath()
@@ -39,17 +39,14 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <summary>
     /// Load the remote catalog
     /// </summary>
-    public async Task<bool> AsyncStart()
+    public async Task<bool> AsyncAwake()
     {
         bool finished = false;
         //Load a catalog and automatically release the operation handle.
         Debug.Log("Loading content catalog from: " + GetAddressablesPath());
 
-        //catalogLoadHandle
-        //    = Addressables.LoadContentCatalogAsync(GetAddressablesPath(), true);
-
         AsyncOperationHandle<IResourceLocator> catalogLoadHandle
-            = Addressables.LoadContentCatalogAsync("http://data.virtualbrainlab.org/AddressablesStorage/StandaloneWindows64/", true);
+            = Addressables.LoadContentCatalogAsync(GetAddressablesPath(), true);
 
         await catalogLoadHandle.Task;
 
@@ -60,23 +57,72 @@ public class AddressablesRemoteLoader : MonoBehaviour
         return finished;
     }
 
-    public async void LoadCCFMesh(string objPath, Action<Mesh> callback)
+    public static async Task<Mesh> LoadCCFMesh(string objPath)
     {
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
-        // Catalog is loaded, test loading a single mesh file
+        // Catalog is loaded, load specified mesh file
         string path = "Assets/AddressableAssets/AllenCCF/" + objPath;
+        
+        // Not sure why this extra path check is here, I think maybe some objects don't exist and so this hangs indefinitely for those?
         AsyncOperationHandle<IList<IResourceLocation>> pathHandle = Addressables.LoadResourceLocationsAsync(path);
-
         await pathHandle.Task;
 
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
-        loadHandle.Completed += meshHandle =>
-        {
-            Mesh temp = (Mesh)meshHandle.Result;
-            Debug.Log("Loaded: " + path);
-            callback(temp);
-        };
+        await loadHandle.Task;
+
+        return (Mesh)loadHandle.Result;
     }
+
+    public static async Task<Texture3D> LoadAnnotationTexture()
+    {
+        // Wait for the catalog to load if this hasn't already happened
+        await catalogLoadedTask;
+
+        // Catalog is loaded, load the Texture3D object
+        string path = "Assets/AddressableAssets/Textures/AnnotationDatasetTexture3D.asset";
+
+        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Texture3D>(path);
+        await loadHandle.Task;
+
+        return (Texture3D)loadHandle.Result;
+    }
+
+    public static async Task<TextAsset> LoadVolumeIndexes()
+    {
+        // Wait for the catalog to load if this hasn't already happened
+        await catalogLoadedTask;
+
+        string volumePath = "Assets/AddressableAssets/Datasets/volume_indexes.bytes";
+        
+        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(volumePath);
+        await loadHandle.Task;
+
+        return (TextAsset)loadHandle.Result;
+    }
+
+    /// <summary>
+    /// Loads the annotation data to be reconstructed by the VolumeDatasetManager
+    /// </summary>
+    /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
+    public static async Task<List<TextAsset>> LoadAnnotationIndexMap()
+    {
+        // Wait for the catalog to load if this hasn't already happened
+        await catalogLoadedTask;
+
+        string annIndexPath = "Assets/AddressableAssets/Datasets/ann/annotation_indexes.bytes";
+        string annMapPath = "Assets/AddressableAssets/Datasets/ann/annotation_map.bytes";
+
+        AsyncOperationHandle indexHandle = Addressables.LoadAssetAsync<TextAsset>(annIndexPath);
+        AsyncOperationHandle mapHandle = Addressables.LoadAssetAsync<TextAsset>(annMapPath);
+
+        // Build a list of tasks and await them
+        List<Task> dataLoaders = new List<Task>();
+        dataLoaders.Add(indexHandle.Task);
+        dataLoaders.Add(mapHandle.Task);
+        await Task.WhenAll(dataLoaders);
+
+        return new List<TextAsset>() { (TextAsset)indexHandle.Result, (TextAsset)mapHandle.Result };
+    } 
 }
