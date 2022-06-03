@@ -18,7 +18,7 @@ public class Utils : MonoBehaviour
 
     private void Awake()
     {
-        if (flatironInfoAsset != null)
+        if (flatironInfoAsset.RuntimeKeyIsValid())
             LoadFlatironInfo();
     }
 
