@@ -9,21 +9,11 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 public class VolumeDatasetManager : MonoBehaviour
 {
     private AnnotationDataset annotationDataset;
-
     private VolumetricDataset coverageDataset;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
     
     // Annotations
-    [SerializeField] private AssetReference dataIndexes;
     private byte[] datasetIndexes_bytes;
-    [SerializeField] private AssetReference annotationIndexes;
     private ushort[] annotationIndexes_shorts;
-    [SerializeField] private AssetReference annotationMap;
     private uint[] annotationMap_ints;
 
     /// <summary>
@@ -38,26 +28,23 @@ public class VolumeDatasetManager : MonoBehaviour
         Debug.Log("(VDManager) Annotation dataset loading");
         List<Task> dataLoaders = new List<Task>();
 
-        AsyncOperationHandle<TextAsset> dataLoader = dataIndexes.LoadAssetAsync<TextAsset>();
-        dataLoaders.Add(dataLoader.Task);
-        AsyncOperationHandle<TextAsset> annIndexLoader = annotationIndexes.LoadAssetAsync<TextAsset>();
-        dataLoaders.Add(annIndexLoader.Task);
-        AsyncOperationHandle<TextAsset> annMapLoader = annotationMap.LoadAssetAsync<TextAsset>();
-        dataLoaders.Add(annMapLoader.Task);
+        Task<TextAsset> dataTask = AddressablesRemoteLoader.LoadVolumeIndexes();
+        dataLoaders.Add(dataTask);
+
+
+        Task<List<TextAsset>> annotationTask = AddressablesRemoteLoader.LoadAnnotationIndexMap();
+        dataLoaders.Add(annotationTask);
 
         await Task.WhenAll(dataLoaders);
 
         // When all loaded, copy the data locally using Buffer.BlockCopy()
-        datasetIndexes_bytes = dataLoader.Result.bytes;
-        Addressables.Release(dataLoader);
+        datasetIndexes_bytes = dataTask.Result.bytes;
 
-        annotationIndexes_shorts = new ushort[annIndexLoader.Result.bytes.Length / 2];
-        Buffer.BlockCopy(annIndexLoader.Result.bytes, 0, annotationIndexes_shorts, 0, annIndexLoader.Result.bytes.Length);
-        Addressables.Release(annIndexLoader);
+        annotationIndexes_shorts = new ushort[annotationTask.Result[0].bytes.Length / 2];
+        Buffer.BlockCopy(annotationTask.Result[0].bytes, 0, annotationIndexes_shorts, 0, annotationTask.Result[0].bytes.Length);
 
-        annotationMap_ints = new uint[annMapLoader.Result.bytes.Length / 4];
-        Buffer.BlockCopy(annMapLoader.Result.bytes, 0, annotationMap_ints, 0, annMapLoader.Result.bytes.Length);
-        Addressables.Release(annMapLoader);
+        annotationMap_ints = new uint[annotationTask.Result[1].bytes.Length / 4];
+        Buffer.BlockCopy(annotationTask.Result[1].bytes, 0, annotationMap_ints, 0, annotationTask.Result[1].bytes.Length);
 
         Debug.Log("(VDManager) Annotation dataset files loaded, building dataset");
 

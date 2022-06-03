@@ -126,19 +126,12 @@ public class CCFTreeNode
         nodeModelGO = new GameObject(Name);
         nodeModelGO.transform.parent = brainModelParent;
 
-        string path = (loadSeparatedModels) ? CCFModelControl.GetAddressablePath() + this.ID + "L.obj" : CCFModelControl.GetAddressablePath() + this.ID + ".obj";
-        AsyncOperationHandle<IList<IResourceLocation>> handle = Addressables.LoadResourceLocationsAsync(path);
+        string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
 
-        // [TODO: Some files don't exist at all, so they just hang here? Seems wrong]
-        await handle.Task;
+        Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
+        await meshTask;
 
-        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
-        loadHandle.Completed += handle =>
-        {
-            LoadNodeModelCompleted((Mesh)handle.Result);
-        };
-
-        await loadHandle.Task;
+        LoadNodeModelCompleted(meshTask.Result);
 
         return this;
     }
@@ -149,15 +142,12 @@ public class CCFTreeNode
         nodeModelGO = new GameObject(Name);
         nodeModelGO.transform.SetParent(brainModelParent);
 
-        string path = CCFModelControl.GetAddressablePath() + this.ID;
-        AsyncOperationHandle loadHandle = (loadSeparatedModels) ? Addressables.LoadAssetAsync<Mesh>(path + "L.obj") : Addressables.LoadAssetAsync<Mesh>(path + ".obj");
-        loadHandle.Completed += handle =>
-        {
-            LoadNodeModelCompleted((Mesh)handle.Result);
-        };
-        loadHandle.Completed += callback;
+        string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
 
-        await loadHandle.Task;
+        Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
+        await meshTask;
+
+        LoadNodeModelCompleted(meshTask.Result);
 
         return this;
     }

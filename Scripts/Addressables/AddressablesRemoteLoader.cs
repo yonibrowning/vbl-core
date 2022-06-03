@@ -14,7 +14,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
 
-    private static Task<bool> catalogLoadedTask;
+    private static Task catalogLoadedTask;
 
     // Start is called before the first frame update
     void Awake()
@@ -27,7 +27,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
         else
             Debug.LogError("Running on a platform that does NOT have a built Addressables Storage bundle");
 
-        Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
+        // Warning: I think there must be a better way to do this, but because we only initialize this Task
+        // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
+        // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
         catalogLoadedTask = AsyncAwake();
     }
 
@@ -41,7 +43,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// </summary>
     public async Task<bool> AsyncAwake()
     {
-        bool finished = false;
+        Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
+        bool finished = true;
         //Load a catalog and automatically release the operation handle.
         Debug.Log("Loading content catalog from: " + GetAddressablesPath());
 
@@ -51,9 +54,6 @@ public class AddressablesRemoteLoader : MonoBehaviour
         await catalogLoadHandle.Task;
 
         Debug.Log("Content catalog loaded");
-
-        finished = true;
-
         return finished;
     }
 
@@ -79,6 +79,21 @@ public class AddressablesRemoteLoader : MonoBehaviour
         return returnMesh;
     }
 
+    public static async Task<TextAsset> LoadAllenCCFOntology()
+    {
+        await catalogLoadedTask;
+
+        string path = "Assets/AddressableAssets/AllenCCF/ontology_structure_minimal.csv";
+
+        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(path);
+        await loadHandle.Task;
+
+        TextAsset returnText = (TextAsset)loadHandle.Result;
+        Addressables.Release(loadHandle);
+
+        return returnText;
+    }
+
     public static async Task<Texture3D> LoadAnnotationTexture()
     {
         // Wait for the catalog to load if this hasn't already happened
@@ -91,7 +106,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
         await loadHandle.Task;
 
         Texture3D returnTexture = (Texture3D)loadHandle.Result;
-        Addressables.Release(loadHandle);
+        //Addressables.Release(loadHandle);
 
         return returnTexture;
     }

@@ -8,6 +8,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.Networking;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using Random = UnityEngine.Random;
 
 public class Utils : MonoBehaviour
@@ -17,18 +18,19 @@ public class Utils : MonoBehaviour
 
     private void Awake()
     {
-        LoadFlatironInfo();
+        if (flatironInfoAsset != null)
+            LoadFlatironInfo();
     }
 
-    private void LoadFlatironInfo()
+    private async void LoadFlatironInfo()
     {
-        var op = Addressables.LoadAssetAsync<TextAsset>(flatironInfoAsset);
-        TextAsset text = op.WaitForCompletion();
+        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(flatironInfoAsset);
+        await loadHandle.Task;
 
-        string[] lines = text.text.Split('\n');
+        string[] lines = ((TextAsset)loadHandle.Result).text.Split('\n');
 
         token = lines[0];
-        Addressables.Release(op);
+        Addressables.Release(loadHandle);
     } 
 
     public Vector3 WorldSpace2apdvlr(Vector3 point)
@@ -173,10 +175,13 @@ public class Utils : MonoBehaviour
 
     public void LoadFlatIronData(string dataType, string uri, Action<string, Array> callback)
     {
-        StartCoroutine(FlationRequestNPY(dataType, uri, callback));
+        if (flatironInfoAsset != null)
+            StartCoroutine(FlationRequestNPY(dataType, uri, callback));
+        else
+            Debug.LogError("FlatIron token is not loaded, can't request data");
     }
 
-    public IEnumerator FlationRequestNPY(string dataType, string uri, Action<string, Array> callback)
+    private IEnumerator FlationRequestNPY(string dataType, string uri, Action<string, Array> callback)
     {
         Debug.Log("A Coroutine requested was started for: " + uri);
 
@@ -185,7 +190,6 @@ public class Utils : MonoBehaviour
             // Request and wait for the desired page.
             string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
                                            .GetBytes(token));
-                                           //.GetBytes(username + ":" + password));
             webRequest.SetRequestHeader("Authorization", "Basic " + encoded);
             webRequest.SetRequestHeader("Encoding", "gzip");
             yield return webRequest.SendWebRequest();
