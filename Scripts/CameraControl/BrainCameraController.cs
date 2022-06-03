@@ -23,19 +23,40 @@ public class BrainCameraController : MonoBehaviour
     public float minZRotation = -90;
     public float maxZRotation = 90;
 
+    private bool mouseDownOverBrain;
+    private int mouseButtonDown;
+    private bool brainTransformChanged;
+    private float lastLeftClick;
+    private float lastRightClick;
+
+    private float totalYaw;
+    private float totalPitch;
+    private float totalSpin;
+
     private bool blockBrainControl;
-    //private Action setBrainControlCallback;
+
+    // auto-rotation
+    private bool autoRotate;
+    private float autoRotateSpeed = 10.0f;
 
     public static float doubleClickTime = 0.2f;
+    // Targeting
+    private Vector3 cameraTarget;
 
-    // Start is called before the first frame update
-    void Start()
+    private void Awake()
     {
         // Artifically limit the framerate
 #if !UNITY_WEBGL
         Application.targetFrameRate = 144;
 #endif
+
+        cameraTarget = brain.transform.position;
         initialCameraRotatorPosition = brainCameraRotator.transform.position;
+        autoRotate = false;
+    }
+    // Start is called before the first frame update
+    void Start()
+    {
         lastLeftClick = Time.realtimeSinceStartup;
         lastRightClick = Time.realtimeSinceStartup;
     }
@@ -68,9 +89,16 @@ public class BrainCameraController : MonoBehaviour
             //BrainCameraDetectTargets();
             mouseDownOverBrain = true;
             mouseButtonDown = 0;
+            autoRotate = false;
         }
 
-        BrainCameraControl_noTarget();
+        if (autoRotate)
+        {
+            totalSpin += autoRotateSpeed * Time.deltaTime;
+            ApplyBrainCameraRotatorRotation();
+        }
+        else
+            BrainCameraControl_noTarget();
     }
 
     public void SetControlBlock(bool state)
@@ -78,37 +106,17 @@ public class BrainCameraController : MonoBehaviour
         blockBrainControl = state;
     }
 
-    private bool mouseDownOverBrain;
-    private int mouseButtonDown;
-    private bool brainTransformChanged;
-    private float lastLeftClick;
-    private float lastRightClick;
-
-    private float totalYaw;
-    private float totalPitch;
 
     void BrainCameraControl_noTarget()
     {
+        if (Input.GetMouseButtonUp(0))
+            SetControlBlock(false);
+
         if (mouseDownOverBrain)
         {
             // Deal with releasing the mouse (anywhere)
             if (mouseButtonDown == 0 && Input.GetMouseButtonUp(0))
             {
-                if (!brainTransformChanged)
-                {
-                    // All we did was click through the brain window 
-                    //if (brainCameraClickthroughTarget)
-                    //{
-                    //    BrainCameraClickthrough();
-                    //}
-                    //if ((Time.realtimeSinceStartup - lastLeftClick) < doubleClickTime)
-                    //{
-                    //    totalYaw = 0f;
-                    //    totalPitch = 0f;
-                    //    ApplyBrainCameraRotatorRotation();
-                    //}
-                }
-
                 lastLeftClick = Time.realtimeSinceStartup;
                 ClearMouseDown(); return;
             }
@@ -152,24 +160,33 @@ public class BrainCameraController : MonoBehaviour
                     brainTransformChanged = true;
 
                     // Pitch Locally, Yaw Globally. See: https://gamedev.stackexchange.com/questions/136174/im-rotating-an-object-on-two-axes-so-why-does-it-keep-twisting-around-the-thir
-                    totalYaw = Mathf.Clamp(totalYaw + yRot, minXRotation, maxXRotation);
-                    totalPitch = Mathf.Clamp(totalPitch + xRot, minZRotation, maxZRotation);
 
+                    // if shift is down, we can apply spin instead of yaw
+                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    {
+                        totalSpin = Mathf.Clamp(totalSpin + xRot, minXRotation, maxXRotation);
+                    }
+                    else
+                    {
+                        totalYaw = Mathf.Clamp(totalYaw + yRot, minXRotation, maxXRotation);
+                        totalPitch = Mathf.Clamp(totalPitch + xRot, minZRotation, maxZRotation);
+                    }
                     ApplyBrainCameraRotatorRotation();
                 }
             }
         }
     }
+
     void ApplyBrainCameraRotatorRotation()
     {
-        Quaternion curRotation = Quaternion.Euler(totalYaw, 0, totalPitch);
-
+        Quaternion curRotation = Quaternion.Euler(totalYaw, totalSpin, totalPitch);
         // Move the camera back to zero, perform rotation, then offset back
         brainCameraRotator.transform.position = initialCameraRotatorPosition;
-        brainCameraRotator.transform.LookAt(brain.transform, Vector3.back);
-        brainCameraRotator.transform.position = curRotation * (brainCameraRotator.transform.position - brain.transform.position) + brain.transform.position;
+        brainCameraRotator.transform.LookAt(cameraTarget, Vector3.back);
+        brainCameraRotator.transform.position = curRotation * (brainCameraRotator.transform.position - cameraTarget) + cameraTarget;
         brainCameraRotator.transform.rotation = curRotation * brainCameraRotator.transform.rotation;
     }
+
     void ClearMouseDown()
     {
         mouseDownOverBrain = false;
@@ -182,10 +199,55 @@ public class BrainCameraController : MonoBehaviour
         return new Vector2(totalPitch, totalYaw);
     }
 
-    public void SetBrainAxisAngles(Vector2 newPitchYaw)
+    public void SetBrainAxisAngles(Vector2 pitchYaw)
     {
-        totalPitch = newPitchYaw.x;
-        totalYaw = newPitchYaw.y;
+        totalPitch = pitchYaw.x;
+        totalYaw = pitchYaw.y;
+        totalSpin = 0f;
         ApplyBrainCameraRotatorRotation();
+    }
+    public void SetBrainAxisAngles(Vector3 pitchYawSpin)
+    {
+        totalPitch = pitchYawSpin.x;
+        totalYaw = pitchYawSpin.y;
+        totalSpin = pitchYawSpin.z;
+        ApplyBrainCameraRotatorRotation();
+    }
+
+    public void SetYaw(float newYaw)
+    {
+        totalYaw = newYaw;
+    }
+
+    public void SetPitch(float newPitch)
+    {
+        totalPitch = newPitch;
+    }
+
+    public void SetSpin(float newSpin)
+    {
+        totalSpin = newSpin;
+    }
+
+    public void SetCameraTarget(Vector3 newTarget)
+    {
+        Debug.Log("Setting camera target to: " + newTarget);
+
+        // Reset any panning 
+        brainCamera.transform.localPosition = Vector3.zero;
+
+        cameraTarget = new Vector3(5.7f - newTarget.z, 4f - newTarget.y, -6.6f + newTarget.x);
+
+        ApplyBrainCameraRotatorRotation();
+    }
+
+    public void SetCameraContinuousRotation(bool state)
+    {
+        autoRotate = state;
+    }
+
+    public void SetCameraRotationSpeed(float speed)
+    {
+        autoRotateSpeed = speed;
     }
 }
