@@ -100,7 +100,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
         await catalogLoadedTask;
 
         // Catalog is loaded, load the Texture3D object
-        string path = "Assets/AddressableAssets/Textures/AnnotationDatasetTexture3D.asset";
+        string path = "Assets/AddressableAssets/Textures/AnnotationDatasetTexture3DAlpha.asset";
 
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Texture3D>(path);
         await loadHandle.Task;

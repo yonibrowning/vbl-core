@@ -169,7 +169,6 @@ public class CCFModelControl : MonoBehaviour
                     }
                     else if (defaultNodes.Contains(id))
                     {
-                        // [TODO: Improve this code to provide a way to read out whether or not all of the files are loaded]
                         // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
                         defaultLoadedNodesTasks.Add(node.loadNodeModel(false));
                         defaultLoadedNodes.Add(node);
@@ -315,10 +314,24 @@ public class CCFModelControl : MonoBehaviour
         if (node != null)
             ChangeMaterial(node, materialName);
     }
+    public void ChangeMaterialOneSided(int ID, string materialName, bool leftSide)
+    {
+        CCFTreeNode node = tree.findNode(ID);
+        if (node != null)
+            ChangeMaterialOneSided(node, materialName, leftSide);
+    }
+
     public void ChangeMaterial(CCFTreeNode node, string materialName)
     {
         if (brainRegionMaterialNames.Contains(materialName))
             node.SetMaterial(brainRegionMaterials[brainRegionMaterialNames.IndexOf(materialName)]);
+        else
+            Debug.LogWarning("Material name [" + materialName + "] missing from material options");
+    }
+    public void ChangeMaterialOneSided(CCFTreeNode node, string materialName, bool leftSide)
+    {
+        if (brainRegionMaterialNames.Contains(materialName))
+            node.SetMaterialOneSided(brainRegionMaterials[brainRegionMaterialNames.IndexOf(materialName)], leftSide);
         else
             Debug.LogWarning("Material name [" + materialName + "] missing from material options");
     }

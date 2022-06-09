@@ -291,6 +291,23 @@ public class CCFTreeNode
 
         SetColor(color);
     }
+    public void SetMaterialOneSided(Material newMaterial, bool leftSide)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before material can be set");
+            return;
+        }
+        this.material = newMaterial;
+        if (singleModel)
+            Debug.LogError("Can't set sided material in singleModel mode");
+        else if (leftSide)
+            nodeModelLeftGO.GetComponent<Renderer>().material = newMaterial;
+        else
+            nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
+
+        SetColorOneSided(color, leftSide);
+    }
 
     public void SetShaderProperty(string property, Vector4 value)
     {
@@ -308,6 +325,21 @@ public class CCFTreeNode
         }
     }
 
+    public void SetShaderPropertyOneSided(string property, Vector4 value, bool leftSide)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before material properties can be set");
+            return;
+        }
+        if (singleModel)
+            Debug.LogError("Can't set sided properties in single mode");
+        else if (leftSide)
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
+        else
+            nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
+    }
+
     public void SetShaderProperty(string property, float value)
     {
         if (!loaded)
@@ -323,6 +355,20 @@ public class CCFTreeNode
             nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
         }
     }
+    public void SetShaderPropertyOneSided(string property, float value, bool leftSide)
+    {
+        if (!loaded)
+        {
+            Debug.LogError("Node model needs to be loaded before material properties can be set");
+            return;
+        }
+        if (singleModel)
+            Debug.LogError("Can't set sided properties in single mode");
+        else if (leftSide)
+            nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
+        else
+            nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
+    }
 
 
     public void SetNodeModelVisibility(bool visible)
@@ -335,6 +381,30 @@ public class CCFTreeNode
         {
             nodeModelLeftGO.SetActive(visible);
             nodeModelRightGO.SetActive(visible);
+        }
+    }
+
+    public void SetNodeModelVisibilityLeft(bool leftVisible)
+    {
+        if (singleModel)
+        {
+            Debug.LogWarning("Node model visibility cannot be set separately when running in single model mode.");
+        }
+        else
+        {
+            nodeModelLeftGO.SetActive(leftVisible);
+        }
+    }
+
+    public void SetNodeModelVisibilityRight(bool rightVisible)
+    {
+        if (singleModel)
+        {
+            Debug.LogWarning("Node model visibility cannot be set separately when running in single model mode.");
+        }
+        else
+        {
+            nodeModelLeftGO.SetActive(rightVisible);
         }
     }
 

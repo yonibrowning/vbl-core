@@ -250,4 +250,10 @@ public class BrainCameraController : MonoBehaviour
     {
         autoRotateSpeed = speed;
     }
+
+    public void SetCamera(Camera newCamera)
+    {
+        brainCamera = newCamera;
+        ApplyBrainCameraRotatorRotation();
+    }
 }

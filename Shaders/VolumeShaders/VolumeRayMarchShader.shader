@@ -21,7 +21,7 @@ Shader "Unlit/VolumeRayMarchShader"
             #include "UnityCG.cginc"
 
             // Maximum amount of raymarching samples
-            #define MAX_STEP_COUNT 512
+            #define MAX_STEP_COUNT 256
 
             // Allowed floating point inaccuracy
             #define EPSILON 0.00001f
@@ -76,6 +76,7 @@ Shader "Unlit/VolumeRayMarchShader"
                 float4 color = float4(0, 0, 0, 0);
                 float3 samplePosition = rayOrigin;
 
+                int sampleCount = 0;
                 // Raymarch through object space
                 for (int i = 0; i < MAX_STEP_COUNT; i++)
                 {
