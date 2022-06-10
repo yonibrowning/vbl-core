@@ -52,7 +52,7 @@ public class Utils : MonoBehaviour
         return Mathf.Sqrt(values.x * values.x + values.y * values.y);
     }
 
-    public Color ParseHexColor(string hexString)
+    public static Color ParseHexColor(string hexString)
     {
         Color color = new Color();
         ColorUtility.TryParseHtmlString(hexString, out color);
