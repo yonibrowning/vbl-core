@@ -3,7 +3,7 @@ Shader "Unlit/VolumeRayMarchShader"
     Properties
     {
         _MainTex ("Texture", 3D) = "white" {}
-        _Alpha ("Alpha", float) = 0.02
+        _Alpha ("Alpha", Range(0.0,1.0)) = 0.02
         _StepSize ("Step Size", float) = 0.01
     }
     SubShader
