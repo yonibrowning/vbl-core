@@ -256,4 +256,17 @@ public class BrainCameraController : MonoBehaviour
         brainCamera = newCamera;
         ApplyBrainCameraRotatorRotation();
     }
+
+    public void SetCameraBackgroundToggle(bool white)
+    {
+        if (white)
+            SetCameraBackgroundColor(Color.white);
+        else
+            SetCameraBackgroundColor(Color.black);
+    }
+
+    public void SetCameraBackgroundColor(Color newColor)
+    {
+        brainCamera.backgroundColor = newColor;
+    }
 }
