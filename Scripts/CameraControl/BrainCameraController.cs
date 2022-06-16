@@ -11,13 +11,16 @@ public class BrainCameraController : MonoBehaviour
     [SerializeField] private GameObject brain;
 
     private Vector3 initialCameraRotatorPosition;
+    private Vector3 cameraPositionOffset;
 
     public float minFoV = 15.0f;
     public float maxFoV = 90.0f;
     public float fovDelta = 15.0f;
     public float orthoDelta = 5.0f;
-    public float moveSpeed = 50.0f;
-    public float rotSpeed = 1000.0f;
+    public float moveSpeed = 10.0f;
+    public float rotSpeed = 200.0f;
+    [SerializeField] private float shiftMult = 2f;
+    [SerializeField] private float ctrlMult = 0.5f;
     public float minXRotation = -90;
     public float maxXRotation = 90;
     public float minZRotation = -90;
@@ -52,6 +55,7 @@ public class BrainCameraController : MonoBehaviour
 
         cameraTarget = brain.transform.position;
         initialCameraRotatorPosition = brainCameraRotator.transform.position;
+        cameraPositionOffset = Vector3.zero;
         autoRotate = false;
     }
     // Start is called before the first frame update
@@ -59,6 +63,8 @@ public class BrainCameraController : MonoBehaviour
     {
         lastLeftClick = Time.realtimeSinceStartup;
         lastRightClick = Time.realtimeSinceStartup;
+
+        Debug.Log(Utils.WorldSpace2apdvlr(initialCameraRotatorPosition));
     }
 
     // Update is called once per frame
@@ -68,7 +74,7 @@ public class BrainCameraController : MonoBehaviour
         float fov = brainCamera.orthographic ? brainCamera.orthographicSize : brainCamera.fieldOfView;
 
         float scroll = -Input.GetAxis("Mouse ScrollWheel");
-        fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll;
+        fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll * SpeedMultiplier();
         fov = Mathf.Clamp(fov, minFoV, maxFoV);
 
         if (brainCamera.orthographic)
@@ -95,7 +101,7 @@ public class BrainCameraController : MonoBehaviour
         if (autoRotate)
         {
             totalSpin += autoRotateSpeed * Time.deltaTime;
-            ApplyBrainCameraRotatorRotation();
+            ApplyBrainCameraPositionAndRotation();
         }
         else
             BrainCameraControl_noTarget();
@@ -139,8 +145,8 @@ public class BrainCameraController : MonoBehaviour
             if (mouseButtonDown == 1)
             {
                 // While right-click is held down 
-                float xMove = -Input.GetAxis("Mouse X") * moveSpeed * Time.deltaTime;
-                float yMove = -Input.GetAxis("Mouse Y") * moveSpeed * Time.deltaTime;
+                float xMove = -Input.GetAxis("Mouse X") * moveSpeed * SpeedMultiplier() * Time.deltaTime;
+                float yMove = -Input.GetAxis("Mouse Y") * moveSpeed * SpeedMultiplier() * Time.deltaTime;
 
                 if (xMove != 0 || yMove != 0)
                 {
@@ -152,8 +158,8 @@ public class BrainCameraController : MonoBehaviour
             // If the mouse is down, even if we are far way now we should drag the brain
             if (mouseButtonDown == 0)
             {
-                float xRot = -Input.GetAxis("Mouse X") * rotSpeed * Time.deltaTime;
-                float yRot = Input.GetAxis("Mouse Y") * rotSpeed * Time.deltaTime;
+                float xRot = -Input.GetAxis("Mouse X") * rotSpeed * SpeedMultiplier() * Time.deltaTime;
+                float yRot = Input.GetAxis("Mouse Y") * rotSpeed * SpeedMultiplier() * Time.deltaTime;
 
                 if (xRot != 0 || yRot != 0)
                 {
@@ -161,27 +167,38 @@ public class BrainCameraController : MonoBehaviour
 
                     // Pitch Locally, Yaw Globally. See: https://gamedev.stackexchange.com/questions/136174/im-rotating-an-object-on-two-axes-so-why-does-it-keep-twisting-around-the-thir
 
-                    // if shift is down, we can apply spin instead of yaw
-                    if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+                    // if space is down, we can apply spin instead of yaw
+                    if (Input.GetKey(KeyCode.Space))
                     {
                         totalSpin = Mathf.Clamp(totalSpin + xRot, minXRotation, maxXRotation);
                     }
                     else
                     {
+                        // [TODO] Pitch and Yaw are flipped?
                         totalYaw = Mathf.Clamp(totalYaw + yRot, minXRotation, maxXRotation);
                         totalPitch = Mathf.Clamp(totalPitch + xRot, minZRotation, maxZRotation);
                     }
-                    ApplyBrainCameraRotatorRotation();
+                    ApplyBrainCameraPositionAndRotation();
                 }
             }
         }
     }
 
-    void ApplyBrainCameraRotatorRotation()
+    private float SpeedMultiplier()
+    {
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+            return shiftMult;
+        else if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
+            return ctrlMult;
+        else
+            return 1f;
+    }
+
+    void ApplyBrainCameraPositionAndRotation()
     {
         Quaternion curRotation = Quaternion.Euler(totalYaw, totalSpin, totalPitch);
         // Move the camera back to zero, perform rotation, then offset back
-        brainCameraRotator.transform.position = initialCameraRotatorPosition;
+        brainCameraRotator.transform.position = initialCameraRotatorPosition + cameraPositionOffset;
         brainCameraRotator.transform.LookAt(cameraTarget, Vector3.back);
         brainCameraRotator.transform.position = curRotation * (brainCameraRotator.transform.position - cameraTarget) + cameraTarget;
         brainCameraRotator.transform.rotation = curRotation * brainCameraRotator.transform.rotation;
@@ -204,14 +221,14 @@ public class BrainCameraController : MonoBehaviour
         totalPitch = pitchYaw.x;
         totalYaw = pitchYaw.y;
         totalSpin = 0f;
-        ApplyBrainCameraRotatorRotation();
+        ApplyBrainCameraPositionAndRotation();
     }
     public void SetBrainAxisAngles(Vector3 pitchYawSpin)
     {
         totalPitch = pitchYawSpin.x;
         totalYaw = pitchYawSpin.y;
         totalSpin = pitchYawSpin.z;
-        ApplyBrainCameraRotatorRotation();
+        ApplyBrainCameraPositionAndRotation();
     }
 
     public void SetYaw(float newYaw)
@@ -236,9 +253,16 @@ public class BrainCameraController : MonoBehaviour
         // Reset any panning 
         brainCamera.transform.localPosition = Vector3.zero;
 
-        cameraTarget = new Vector3(5.7f - newTarget.z, 4f - newTarget.y, -6.6f + newTarget.x);
+        cameraTarget = newTarget;
+        cameraPositionOffset = newTarget;
 
-        ApplyBrainCameraRotatorRotation();
+        ApplyBrainCameraPositionAndRotation();
+    }
+
+    public void ResetCameraTarget()
+    {
+        cameraTarget = brain.transform.position;
+        ApplyBrainCameraPositionAndRotation();
     }
 
     public void SetCameraContinuousRotation(bool state)
@@ -254,7 +278,7 @@ public class BrainCameraController : MonoBehaviour
     public void SetCamera(Camera newCamera)
     {
         brainCamera = newCamera;
-        ApplyBrainCameraRotatorRotation();
+        ApplyBrainCameraPositionAndRotation();
     }
 
     public void SetCameraBackgroundToggle(bool white)
@@ -268,5 +292,11 @@ public class BrainCameraController : MonoBehaviour
     public void SetCameraBackgroundColor(Color newColor)
     {
         brainCamera.backgroundColor = newColor;
+    }
+
+    public void SetOffsetPosition(Vector3 newOffset)
+    {
+        cameraPositionOffset = newOffset;
+        ApplyBrainCameraPositionAndRotation();
     }
 }

@@ -78,7 +78,6 @@ public class CCFTreeNode
 
     private bool singleModel;
     private GameObject nodeModelGO;
-    private Vector3 nodeMeshCenter;
 
     private GameObject nodeModelLeftGO;
     private GameObject nodeModelRightGO;
@@ -163,6 +162,8 @@ public class CCFTreeNode
         //localMesh.colors = fullMesh.colors;
         localMesh.tangents = fullMesh.tangents;
 
+        // Check if the mesh has extra vertices near 0,0,0
+
         if (!singleModel)
         {
             // Create the left/right meshes
@@ -179,6 +180,7 @@ public class CCFTreeNode
             leftRend.receiveShadows = false;
             leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelLeftGO.GetComponent<MeshFilter>().mesh = localMesh;
+            nodeModelLeftGO.AddComponent<MeshCollider>();
             nodeModelLeftGO.SetActive(false);
 
             // Create the right meshes
@@ -211,7 +213,6 @@ public class CCFTreeNode
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             nodeModelGO.GetComponent<MeshFilter>().mesh = localMesh;
 
-            nodeMeshCenter = rend.bounds.center;
             nodeModelGO.SetActive(false);
         }
 
@@ -226,6 +227,11 @@ public class CCFTreeNode
     public Color GetDefaultColor()
     {
         return color;
+    }
+
+    public List<CCFTreeNode> GetChildren()
+    {
+        return childNodes;
     }
 
     public void ResetColor()
@@ -469,9 +475,16 @@ public class CCFTreeNode
         return nodeModelGO.transform;
     }
 
-    public Vector3 GetMeshCenter()
+    public Vector3 GetMeshCenter(bool leftSide = false, bool rightSide = false)
     {
-        return nodeMeshCenter;
+        if (singleModel)
+            return nodeModelGO.GetComponent<Renderer>().bounds.center;
+        else if (leftSide)
+            return nodeModelLeftGO.GetComponent<Renderer>().bounds.center;
+        else if (rightSide)
+            return nodeModelRightGO.GetComponent<Renderer>().bounds.center;
+        else
+            return nodeModelLeftGO.GetComponent<Renderer>().bounds.center + nodeModelRightGO.GetComponent<Renderer>().bounds.center;
     }
 
     public GameObject MainGameObject()

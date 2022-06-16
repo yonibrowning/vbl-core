@@ -33,6 +33,10 @@ public class CCFModelControl : MonoBehaviour
     private bool useBerylRemap;
     private bool useCosmosRemap;
 
+    // node lists (for convenience)
+    private List<CCFTreeNode> berylNodes;
+    private List<CCFTreeNode> cosmosNodes;
+
     [SerializeField] private bool overrideNetwork;
 
     [SerializeField] List<Material> brainRegionMaterials;
@@ -60,6 +64,8 @@ public class CCFModelControl : MonoBehaviour
         ccfAreaNames = new Dictionary<int, string>();
         berylRemap = new Dictionary<int, int>();
         cosmosRemap = new Dictionary<int, int>();
+        berylNodes = new List<CCFTreeNode>();
+        cosmosNodes = new List<CCFTreeNode>();
 
         defaultBrainRegionMaterial = brainRegionMaterials[brainRegionMaterialNames.IndexOf("default")];
 
@@ -156,6 +162,13 @@ public class CCFModelControl : MonoBehaviour
                 // not the root, so add this node 
                 CCFTreeNode node = tree.addNode(parent, id, atlas_id, depth, name, shortName, color);
 
+                // check if this node is cosmos or beryl
+                if (!missing.Contains(id))
+                    if (id == cosmos)
+                        cosmosNodes.Add(node);
+                    else if (id == beryl)
+                        berylNodes.Add(node);
+
                 // If this node should be visible by default, load it now
                 if (loadDefaults)
                 {
@@ -205,6 +218,36 @@ public class CCFModelControl : MonoBehaviour
     public List<CCFTreeNode> GetDefaultLoadedNodes()
     {
         return defaultLoadedNodes;
+    }
+
+    /// <summary>
+    /// Convenience function to load all beryl nodes and set visible (if they aren't already loaded)
+    /// </summary>
+    /// <returns>Beryl nodes</returns>
+    public async Task<List<CCFTreeNode>> LoadBerylNodes(bool separated)
+    {
+        List<Task> taskHandles = new List<Task>();
+        foreach (CCFTreeNode node in berylNodes)
+            if (!node.IsLoaded())
+                taskHandles.Add(node.loadNodeModel(separated));
+        await Task.WhenAll(taskHandles);
+
+        return berylNodes;
+    }
+
+    /// <summary>
+    /// Convenience function to load all cosmos nodes and set visible (if they aren't already loaded)
+    /// </summary>
+    /// <returns>Cosmos nodes</returns>
+    public async Task<List<CCFTreeNode>> LoadCosmosNodes(bool separated)
+    {
+        List<Task> taskHandles = new List<Task>();
+        foreach (CCFTreeNode node in cosmosNodes)
+            if (!node.IsLoaded())
+                taskHandles.Add(node.loadNodeModel(separated));
+        await Task.WhenAll(taskHandles);
+
+        return cosmosNodes;
     }
 
     public CCFTreeNode GetNode(int ID)

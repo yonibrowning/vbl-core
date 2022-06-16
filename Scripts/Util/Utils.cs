@@ -33,7 +33,7 @@ public class Utils : MonoBehaviour
         Addressables.Release(loadHandle);
     } 
 
-    public Vector3 WorldSpace2apdvlr(Vector3 point)
+    public static Vector3 WorldSpace2apdvlr(Vector3 point)
     {
         point = (point) * 1000f / 25f;
         int ap25 = Mathf.RoundToInt(point.z);
@@ -42,7 +42,7 @@ public class Utils : MonoBehaviour
         return new Vector3(ap25, dv25, lr25);
     }
 
-    public Vector3 apdvlr2World(Vector3 apdvlr)
+    public static Vector3 apdvlr2World(Vector3 apdvlr)
     {
         return new Vector3(-apdvlr.z / 40f, -apdvlr.y / 40f, apdvlr.x / 40f);
     }
