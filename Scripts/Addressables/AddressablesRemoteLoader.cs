@@ -62,9 +62,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
+
         // Catalog is loaded, load specified mesh file
         string path = "Assets/AddressableAssets/AllenCCF/" + objPath;
-        
         // Not sure why this extra path check is here, I think maybe some objects don't exist and so this hangs indefinitely for those?
         AsyncOperationHandle<IList<IResourceLocation>> pathHandle = Addressables.LoadResourceLocationsAsync(path);
         await pathHandle.Task;

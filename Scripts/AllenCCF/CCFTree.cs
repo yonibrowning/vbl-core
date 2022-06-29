@@ -226,7 +226,7 @@ public class CCFTreeNode
 
     public Color GetDefaultColor()
     {
-        return color;
+        return defaultColor;
     }
 
     public List<CCFTreeNode> GetChildren()
@@ -236,17 +236,20 @@ public class CCFTreeNode
 
     public void ResetColor()
     {
-        SetColor(defaultColor);
+        SetColor(defaultColor, true);
     }
 
-    public void SetColor(Color newColor)
+    public void SetColor(Color newColor, bool saveColor)
     {
         if (!loaded)
         {
             Debug.LogError("Node model needs to be loaded before color can be set");
             return;
         }
-        color = newColor;
+
+        if (saveColor)
+            color = newColor;
+
         if (singleModel)
             nodeModelGO.GetComponent<Renderer>().material.SetColor("_Color", color);
         else
@@ -256,7 +259,7 @@ public class CCFTreeNode
         }
     }
 
-    public void SetColorOneSided(Color newColor, bool leftSide)
+    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor)
     {
         if (!loaded)
         {
@@ -268,6 +271,9 @@ public class CCFTreeNode
             Debug.LogError("Can't set one-sided colors when loading single models.");
             return;
         }
+
+        if (saveColor)
+            color = newColor;
 
         if (leftSide)
         {
@@ -295,7 +301,7 @@ public class CCFTreeNode
             nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
         }
 
-        SetColor(color);
+        SetColor(color, false);
     }
     public void SetMaterialOneSided(Material newMaterial, bool leftSide)
     {
@@ -312,7 +318,7 @@ public class CCFTreeNode
         else
             nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
 
-        SetColorOneSided(color, leftSide);
+        SetColorOneSided(color, leftSide, false);
     }
 
     public void SetShaderProperty(string property, Vector4 value)
