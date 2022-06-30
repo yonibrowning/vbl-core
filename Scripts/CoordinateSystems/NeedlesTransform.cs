@@ -15,6 +15,14 @@ public class NeedlesTransform : CoordinateTransform
         }
     }
 
+    public override string Prefix
+    {
+        get
+        {
+            return "ne";
+        }
+    }
+
     /// <summary>
     /// Convert a coordinate in Needles space back to CCF space
     /// </summary>

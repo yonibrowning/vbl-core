@@ -31,7 +31,18 @@ public class Utils : MonoBehaviour
 
         token = lines[0];
         Addressables.Release(loadHandle);
-    } 
+    }
+
+
+    public static float CircDeg(float deg, float minDeg, float maxDeg)
+    {
+        float diff = Mathf.Abs(maxDeg - minDeg);
+
+        if (deg < minDeg) deg += diff;
+        if (deg > maxDeg) deg -= diff;
+
+        return deg;
+    }
 
     public static Vector3 WorldSpace2apdvlr(Vector3 point)
     {

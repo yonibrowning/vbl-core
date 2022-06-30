@@ -4,6 +4,7 @@ using UnityEngine;
 public abstract class CoordinateTransform
 {
     public abstract string Name { get; }
+    public abstract string Prefix { get; }
 
     /// <summary>
     /// Convert from system coordinates back to CCF space
