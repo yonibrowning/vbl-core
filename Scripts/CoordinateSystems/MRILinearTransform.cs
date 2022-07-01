@@ -41,9 +41,9 @@ public class MRILinearTransform : CoordinateTransform
     /// <returns></returns>
     public override Vector3 FromCCF(Vector3 ccfCoord)
     {
-        Vector3 needlesCoord = Vector3.Scale(ccfCoord, invivoConversionAPMLDV);
+        Vector3 needlesCoord = Vector3.Scale(ccfCoord - bregma, invivoConversionAPMLDV);
         // Apply rotation
-        return RotatePointAroundPivot(needlesCoord, bregma, invivoConversionPhiThetaBeta);
+        return RotatePointAroundPivot(needlesCoord, Vector3.zero, invivoConversionPhiThetaBeta);
     }
 
     public Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)
