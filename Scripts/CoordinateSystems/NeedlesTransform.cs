@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class NeedlesTransform : CoordinateTransform
 {
-    private Vector3 invivoConversionAPMLDV = new Vector3(1.087f, 1f, 0.952f);
-    private Vector3 inverseConversion = new Vector3(1 / 1.087f, 1f, 1 / 0.952f);
+    private Vector3 invivoConversionAPMLDV = new Vector3(-1.087f, 1f, -0.952f);
+    private Vector3 inverseConversion = new Vector3(-1 / 1.087f, 1f, -1 / 0.952f);
     private Vector3 bregma = new Vector3(5.4f, 5.7f, 0.332f);
 
     public override string Name

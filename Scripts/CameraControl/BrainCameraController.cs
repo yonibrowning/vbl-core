@@ -63,8 +63,6 @@ public class BrainCameraController : MonoBehaviour
     {
         lastLeftClick = Time.realtimeSinceStartup;
         lastRightClick = Time.realtimeSinceStartup;
-
-        Debug.Log(Utils.WorldSpace2apdvlr(initialCameraRotatorPosition));
     }
 
     // Update is called once per frame

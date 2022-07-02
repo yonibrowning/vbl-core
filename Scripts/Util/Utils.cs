@@ -44,7 +44,7 @@ public class Utils : MonoBehaviour
         return deg;
     }
 
-    public static Vector3 WorldSpace2apdvlr(Vector3 point)
+    public static Vector3 WorldSpace2apdvlr25(Vector3 point)
     {
         point = (point) * 1000f / 25f;
         int ap25 = Mathf.RoundToInt(point.z);
@@ -53,9 +53,19 @@ public class Utils : MonoBehaviour
         return new Vector3(ap25, dv25, lr25);
     }
 
-    public static Vector3 apdvlr2World(Vector3 apdvlr)
+    public static Vector3 apdvlr25_2World(Vector3 apdvlr)
     {
         return new Vector3(-apdvlr.z / 40f, -apdvlr.y / 40f, apdvlr.x / 40f);
+    }
+
+    public static Vector3 apmldv2world(Vector3 point)
+    {
+        return new Vector3(-point.y, -point.z, point.x);
+    }
+
+    public static Vector3 world2apmldv(Vector3 point)
+    {
+        return new Vector3(point.z, -point.x, -point.y);
     }
 
     public float Hypot(Vector2 values)
