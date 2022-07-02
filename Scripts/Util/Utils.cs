@@ -44,6 +44,8 @@ public class Utils : MonoBehaviour
         return deg;
     }
 
+    // Note: probably as part of these functions you should be adding/subtracting the GetCenterOffset() from
+    // tpmanager, so that it doesn't have to happen as a subsequent step?
     public static Vector3 WorldSpace2apdvlr25(Vector3 point)
     {
         point = (point) * 1000f / 25f;
