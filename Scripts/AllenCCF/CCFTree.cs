@@ -239,7 +239,7 @@ public class CCFTreeNode
         SetColor(defaultColor, true);
     }
 
-    public void SetColor(Color newColor, bool saveColor)
+    public void SetColor(Color newColor, bool saveColor = true)
     {
         if (!loaded)
         {
@@ -259,7 +259,7 @@ public class CCFTreeNode
         }
     }
 
-    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor)
+    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
     {
         if (!loaded)
         {

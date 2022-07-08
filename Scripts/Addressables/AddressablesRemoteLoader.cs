@@ -14,11 +14,37 @@ public class AddressablesRemoteLoader : MonoBehaviour
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
 
+    // Server setup task
+    private TaskCompletionSource<bool> catalogTargetSetSource;
+    private Task<bool> catalogTargetSetTask;
+
+    // Catalog load task
     private static Task catalogLoadedTask;
+
+    // Delaying the load allows you to set the catalog address
+    [SerializeField] private bool delayCatalogLoad = false;
 
     // Start is called before the first frame update
     void Awake()
     {
+        catalogTargetSetSource = new TaskCompletionSource<bool>();
+        catalogTargetSetTask = catalogTargetSetSource.Task;
+
+        if (!delayCatalogLoad) {
+            LoadCatalog();
+        }
+
+        // Warning: I think there must be a better way to do this, but because we only initialize this Task
+        // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
+        // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
+        catalogLoadedTask = AsyncLink2Catalog();
+    }
+
+    public void ChangeCatalogServer(string newAddressablesStorageRemotePath) {
+        this.addressablesStorageRemotePath = newAddressablesStorageRemotePath;
+    }
+
+    public void LoadCatalog() {
         RuntimePlatform platform = Application.platform;
         if (platform == RuntimePlatform.WindowsPlayer || platform == RuntimePlatform.WindowsEditor)
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "StandaloneWindows64/catalog_" + buildVersion + fileEnding;
@@ -26,11 +52,11 @@ public class AddressablesRemoteLoader : MonoBehaviour
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "WebGL/catalog_" + buildVersion + fileEnding;
         else
             Debug.LogError("Running on a platform that does NOT have a built Addressables Storage bundle");
+        catalogTargetSetSource.SetResult(true);
+    }
 
-        // Warning: I think there must be a better way to do this, but because we only initialize this Task
-        // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
-        // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
-        catalogLoadedTask = AsyncAwake();
+    public Task GetCatalogLoadedTask() {
+        return catalogLoadedTask;
     }
 
     public string GetAddressablesPath()
@@ -41,8 +67,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <summary>
     /// Load the remote catalog
     /// </summary>
-    public async Task<bool> AsyncAwake()
+    public async Task<bool> AsyncLink2Catalog()
     {
+        await catalogTargetSetTask;
+
         Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
         bool finished = true;
         //Load a catalog and automatically release the operation handle.
