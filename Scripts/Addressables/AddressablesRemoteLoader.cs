@@ -50,8 +50,11 @@ public class AddressablesRemoteLoader : MonoBehaviour
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "StandaloneWindows64/catalog_" + buildVersion + fileEnding;
         else if (platform == RuntimePlatform.WebGLPlayer)
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "WebGL/catalog_" + buildVersion + fileEnding;
-        else
-            Debug.LogError("Running on a platform that does NOT have a built Addressables Storage bundle");
+        else if (platform == RuntimePlatform.OSXEditor)
+            addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "StandaloneOSX/catalog_" + buildVersion + fileEnding;
+        else {
+            Debug.LogError(string.Format("Running on {0} we do NOT have a built Addressables Storage bundle",platform));
+        }
         catalogTargetSetSource.SetResult(true);
     }
 
