@@ -90,6 +90,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Mesh> LoadCCFMesh(string objPath)
     {
+        Debug.Log("Loading mesh file: " + objPath);
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -112,6 +113,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadAllenCCFOntology()
     {
+        Debug.Log("Loading Allen CCF");
+
         await catalogLoadedTask;
 
         string path = "Assets/AddressableAssets/AllenCCF/ontology_structure_minimal.csv";
@@ -127,6 +130,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Texture3D> LoadAnnotationTexture()
     {
+        Debug.Log("Loading Allen CCF annotation texture");
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -144,6 +149,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadVolumeIndexes()
     {
+        Debug.Log("Loading volume indexes");
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -164,6 +171,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
     public static async Task<List<TextAsset>> LoadAnnotationIndexMap()
     {
+        Debug.Log("Loading annotation index mapping");
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
