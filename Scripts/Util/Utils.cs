@@ -16,6 +16,9 @@ public class Utils : MonoBehaviour
     [SerializeField] AssetReference flatironInfoAsset;
     string token;
 
+
+    private static Vector3 centerOffset = new Vector3(-5.7f, -4.0f, +6.6f);
+
     private void Awake()
     {
         if (flatironInfoAsset.RuntimeKeyIsValid())
@@ -48,7 +51,7 @@ public class Utils : MonoBehaviour
     // tpmanager, so that it doesn't have to happen as a subsequent step?
     public static Vector3 WorldSpace2apdvlr25(Vector3 point)
     {
-        point = (point) * 1000f / 25f;
+        point = (point + centerOffset) * 1000f / 25f;
         int ap25 = Mathf.RoundToInt(point.z);
         int dv25 = Mathf.RoundToInt(-point.y);
         int lr25 = Mathf.RoundToInt(-point.x);
@@ -57,7 +60,7 @@ public class Utils : MonoBehaviour
 
     public static Vector3 apdvlr25_2World(Vector3 apdvlr)
     {
-        return new Vector3(-apdvlr.z / 40f, -apdvlr.y / 40f, apdvlr.x / 40f);
+        return new Vector3(-apdvlr.z / 40f, -apdvlr.y / 40f, apdvlr.x / 40f) - centerOffset;
     }
 
     public static Vector3 apmldv2world(Vector3 point)
