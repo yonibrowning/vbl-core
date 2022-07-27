@@ -74,10 +74,14 @@ public class AddressablesRemoteLoader : MonoBehaviour
     {
         await catalogTargetSetTask;
 
+#if UNITY_EDITOR
         Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
+#endif
         bool finished = true;
         //Load a catalog and automatically release the operation handle.
+#if UNITY_EDITOR
         Debug.Log("Loading content catalog from: " + GetAddressablesPath());
+#endif
 
         AsyncOperationHandle<IResourceLocator> catalogLoadHandle
             = Addressables.LoadContentCatalogAsync(GetAddressablesPath(), true);
@@ -90,7 +94,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Mesh> LoadCCFMesh(string objPath)
     {
+#if UNITY_EDITOR
         Debug.Log("Loading mesh file: " + objPath);
+#endif
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -113,7 +120,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadAllenCCFOntology()
     {
+#if UNITY_EDITOR
         Debug.Log("Loading Allen CCF");
+#endif
 
         await catalogLoadedTask;
 
@@ -130,7 +139,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Texture3D> LoadAnnotationTexture()
     {
+#if UNITY_EDITOR
         Debug.Log("Loading Allen CCF annotation texture");
+#endif
 
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
@@ -149,7 +160,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadVolumeIndexes()
     {
+#if UNITY_EDITOR
         Debug.Log("Loading volume indexes");
+#endif
 
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
@@ -171,7 +184,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
     public static async Task<List<TextAsset>> LoadAnnotationIndexMap()
     {
+#if UNITY_EDITOR
         Debug.Log("Loading annotation index mapping");
+#endif
 
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
