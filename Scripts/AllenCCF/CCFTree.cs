@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
-using UnityEngine.ResourceManagement.ResourceLocations;
 
 public class CCFTree
 {
@@ -134,22 +131,22 @@ public class CCFTreeNode
 
         return this;
     }
-    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels, Action<AsyncOperationHandle> callback)
-    {
-        singleModel = !loadSeparatedModels;
+    //public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels, Action<AsyncOperationHandle> callback)
+    //{
+    //    singleModel = !loadSeparatedModels;
 
-        nodeModelGO = new GameObject(Name);
-        nodeModelGO.transform.SetParent(brainModelParent);
+    //    nodeModelGO = new GameObject(Name);
+    //    nodeModelGO.transform.SetParent(brainModelParent);
 
-        string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
+    //    string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
 
-        Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
-        await meshTask;
+    //    Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
+    //    await meshTask;
 
-        LoadNodeModelCompleted(meshTask.Result);
+    //    LoadNodeModelCompleted(meshTask.Result);
 
-        return this;
-    }
+    //    return this;
+    //}
 
     private void LoadNodeModelCompleted(Mesh fullMesh)
     {
@@ -239,7 +236,7 @@ public class CCFTreeNode
         SetColor(defaultColor, true);
     }
 
-    public void SetColor(Color newColor, bool saveColor)
+    public void SetColor(Color newColor, bool saveColor = true)
     {
         if (!loaded)
         {
@@ -259,7 +256,7 @@ public class CCFTreeNode
         }
     }
 
-    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor)
+    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
     {
         if (!loaded)
         {

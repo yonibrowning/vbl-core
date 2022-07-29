@@ -14,23 +14,52 @@ public class AddressablesRemoteLoader : MonoBehaviour
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
 
+    // Server setup task
+    private TaskCompletionSource<bool> catalogTargetSetSource;
+    private Task<bool> catalogTargetSetTask;
+
+    // Catalog load task
     private static Task catalogLoadedTask;
+
+    // Delaying the load allows you to set the catalog address
+    [SerializeField] private bool delayCatalogLoad = false;
 
     // Start is called before the first frame update
     void Awake()
     {
+        catalogTargetSetSource = new TaskCompletionSource<bool>();
+        catalogTargetSetTask = catalogTargetSetSource.Task;
+
+        if (!delayCatalogLoad) {
+            LoadCatalog();
+        }
+
+        // Warning: I think there must be a better way to do this, but because we only initialize this Task
+        // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
+        // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
+        catalogLoadedTask = AsyncLink2Catalog();
+    }
+
+    public void ChangeCatalogServer(string newAddressablesStorageRemotePath) {
+        this.addressablesStorageRemotePath = newAddressablesStorageRemotePath;
+    }
+
+    public void LoadCatalog() {
         RuntimePlatform platform = Application.platform;
         if (platform == RuntimePlatform.WindowsPlayer || platform == RuntimePlatform.WindowsEditor)
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "StandaloneWindows64/catalog_" + buildVersion + fileEnding;
         else if (platform == RuntimePlatform.WebGLPlayer)
             addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "WebGL/catalog_" + buildVersion + fileEnding;
-        else
-            Debug.LogError("Running on a platform that does NOT have a built Addressables Storage bundle");
+        else if (platform == RuntimePlatform.OSXEditor)
+            addressablesStorageTargetPath = addressablesStorageRemotePath + "/" + "StandaloneOSX/catalog_" + buildVersion + fileEnding;
+        else {
+            Debug.LogError(string.Format("Running on {0} we do NOT have a built Addressables Storage bundle",platform));
+        }
+        catalogTargetSetSource.SetResult(true);
+    }
 
-        // Warning: I think there must be a better way to do this, but because we only initialize this Task
-        // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
-        // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
-        catalogLoadedTask = AsyncAwake();
+    public Task GetCatalogLoadedTask() {
+        return catalogLoadedTask;
     }
 
     public string GetAddressablesPath()
@@ -41,12 +70,18 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <summary>
     /// Load the remote catalog
     /// </summary>
-    public async Task<bool> AsyncAwake()
+    public async Task<bool> AsyncLink2Catalog()
     {
+        await catalogTargetSetTask;
+
+#if UNITY_EDITOR
         Debug.Log("(AddressablesStorage) Loading catalog v" + buildVersion);
+#endif
         bool finished = true;
         //Load a catalog and automatically release the operation handle.
+#if UNITY_EDITOR
         Debug.Log("Loading content catalog from: " + GetAddressablesPath());
+#endif
 
         AsyncOperationHandle<IResourceLocator> catalogLoadHandle
             = Addressables.LoadContentCatalogAsync(GetAddressablesPath(), true);
@@ -59,6 +94,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Mesh> LoadCCFMesh(string objPath)
     {
+#if UNITY_EDITOR
+        Debug.Log("Loading mesh file: " + objPath);
+#endif
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -81,6 +120,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadAllenCCFOntology()
     {
+#if UNITY_EDITOR
+        Debug.Log("Loading Allen CCF");
+#endif
+
         await catalogLoadedTask;
 
         string path = "Assets/AddressableAssets/AllenCCF/ontology_structure_minimal.csv";
@@ -96,6 +139,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<Texture3D> LoadAnnotationTexture()
     {
+#if UNITY_EDITOR
+        Debug.Log("Loading Allen CCF annotation texture");
+#endif
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -113,6 +160,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
 
     public static async Task<TextAsset> LoadVolumeIndexes()
     {
+#if UNITY_EDITOR
+        Debug.Log("Loading volume indexes");
+#endif
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 
@@ -133,6 +184,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
     public static async Task<List<TextAsset>> LoadAnnotationIndexMap()
     {
+#if UNITY_EDITOR
+        Debug.Log("Loading annotation index mapping");
+#endif
+
         // Wait for the catalog to load if this hasn't already happened
         await catalogLoadedTask;
 

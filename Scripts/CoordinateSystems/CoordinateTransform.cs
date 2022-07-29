@@ -1,8 +1,10 @@
 using UnityEngine;
 
 
-public abstract class CoordinateSystem
+public abstract class CoordinateTransform
 {
+    public abstract string Name { get; }
+    public abstract string Prefix { get; }
 
     /// <summary>
     /// Convert from system coordinates back to CCF space
@@ -16,6 +18,6 @@ public abstract class CoordinateSystem
     /// </summary>
     /// <param name="ccfCoord">CCF coordinate in ap/dv/lr</param>
     /// <returns></returns>
-    public abstract Vector3 ToSystem(Vector3 ccfCoord);
+    public abstract Vector3 FromCCF(Vector3 ccfCoord);
 
 }
