@@ -71,7 +71,7 @@ public class BrainCameraController : MonoBehaviour
     void Update()
     {
         // Check the scroll wheel and deal with the field of view
-        float fov = brainCamera.orthographic ? brainCamera.orthographicSize : brainCamera.fieldOfView;
+        float fov = GetZoom();
 
         float scroll = -Input.GetAxis("Mouse ScrollWheel");
         fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll * SpeedMultiplier();
@@ -216,6 +216,16 @@ public class BrainCameraController : MonoBehaviour
         return new Vector2(totalPitch, totalYaw);
     }
 
+    public Vector3 GetAngles()
+    {
+        return new Vector3(totalPitch, totalYaw, totalSpin);
+    }
+
+    public float GetZoom()
+    {
+        return brainCamera.orthographic ? brainCamera.orthographicSize : brainCamera.fieldOfView;
+    }
+
     public void SetBrainAxisAngles(Vector2 pitchYaw)
     {
         totalPitch = pitchYaw.x;
@@ -244,6 +254,11 @@ public class BrainCameraController : MonoBehaviour
     public void SetSpin(float newSpin)
     {
         totalSpin = newSpin;
+    }
+
+    public Vector3 GetCameraTarget()
+    {
+        return cameraTarget;
     }
 
     public void SetCameraTarget(Vector3 newTarget)
