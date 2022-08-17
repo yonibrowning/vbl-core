@@ -294,6 +294,11 @@ public class BrainCameraController : MonoBehaviour
         ApplyBrainCameraPositionAndRotation();
     }
 
+    public Camera GetCamera()
+    {
+        return brainCamera;
+    }
+
     public void SetCameraBackgroundToggle(bool white)
     {
         if (white)

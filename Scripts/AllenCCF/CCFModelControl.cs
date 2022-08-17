@@ -97,7 +97,7 @@ public class CCFModelControl : MonoBehaviour
         }
     }
 
-    public Task GetDefaultLoaded()
+    public Task GetDefaultLoadedTask()
     {
         return defaultLoadedTask;
     }
