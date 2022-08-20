@@ -25,6 +25,32 @@ public class Utils : MonoBehaviour
             LoadFlatironInfo();
     }
 
+
+    /// <summary>
+    /// Rotate phi and theta to match IBL coordinates
+    /// </summary>
+    /// <param name="phiTheta"></param>
+    /// <returns></returns>
+    public static Vector2 World2IBL(Vector2 phiTheta)
+    {
+        float iblPhi = -phiTheta.x - 90f;
+        float iblTheta = -phiTheta.y;
+        return new Vector2(iblPhi, iblTheta);
+    }
+
+    /// <summary>
+    /// Rotate IBL coordinates to return to pinpoint space
+    /// </summary>
+    /// <param name="iblPhiTheta"></param>
+    /// <returns></returns>
+    public static Vector2 IBL2World(Vector2 iblPhiTheta)
+    {
+        float worldPhi = -iblPhiTheta.x - 90f;
+        float worldTheta = -iblPhiTheta.y;
+        return new Vector2(worldPhi, worldTheta);
+    }
+
+
     private async void LoadFlatironInfo()
     {
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(flatironInfoAsset);
