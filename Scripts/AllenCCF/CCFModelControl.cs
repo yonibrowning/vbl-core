@@ -45,7 +45,7 @@ public class CCFModelControl : MonoBehaviour
     private List<CCFTreeNode> defaultLoadedNodes;
     private TaskCompletionSource<bool> defaultLoadedTaskSource;
     private Task defaultLoadedTask;
-    private List<Task<CCFTreeNode>> defaultLoadedNodesTasks;
+    private List<Task<bool>> defaultLoadedNodesTasks;
 
     private int[] missing = { 738, 995 };
 
@@ -77,7 +77,7 @@ public class CCFModelControl : MonoBehaviour
         // Setup async tasks
         defaultLoadedTaskSource = new TaskCompletionSource<bool>();
         defaultLoadedTask = defaultLoadedTaskSource.Task;
-        defaultLoadedNodesTasks = new List<Task<CCFTreeNode>>();
+        defaultLoadedNodesTasks = new List<Task<bool>>();
     }
 
     private void Update()
@@ -128,12 +128,12 @@ public class CCFModelControl : MonoBehaviour
     {
         Debug.Log("(CCFMC) Starting remote load of ontology structure file");
 
-        Task<TextAsset> ontologyTask = AddressablesRemoteLoader.LoadAllenCCFOntology();
+        Task<string> ontologyTask = AddressablesRemoteLoader.LoadAllenCCFOntology();
         await ontologyTask;
 
         Debug.Log("(CCFMC) Ontology structure file loaded");
 
-        List<Dictionary<string, object>> data = CSVReader.ParseText(ontologyTask.Result.text);
+        List<Dictionary<string, object>> data = CSVReader.ParseText(ontologyTask.Result);
 
         for (var i = 0; i < data.Count; i++)
         {
@@ -172,14 +172,16 @@ public class CCFModelControl : MonoBehaviour
                     {
                         if (id == beryl && !missing.Contains(id))
                         {
-                            defaultLoadedNodesTasks.Add(node.loadNodeModel(true));
+                            node.LoadNodeModel(true);
+                            defaultLoadedNodesTasks.Add(node.GetLoadedTask());
                             defaultLoadedNodes.Add(node);
                         }
                     }
                     else if (defaultNodes.Contains(id))
                     {
                         // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
-                        defaultLoadedNodesTasks.Add(node.loadNodeModel(false));
+                        node.LoadNodeModel(false);
+                        defaultLoadedNodesTasks.Add(node.GetLoadedTask());
                         defaultLoadedNodes.Add(node);
                     }
                 }
@@ -225,7 +227,10 @@ public class CCFModelControl : MonoBehaviour
         List<Task> taskHandles = new List<Task>();
         foreach (CCFTreeNode node in berylNodes)
             if (!node.IsLoaded())
-                taskHandles.Add(node.loadNodeModel(separated));
+            {
+                node.LoadNodeModel(separated);
+                taskHandles.Add(node.GetLoadedTask());
+            }
         await Task.WhenAll(taskHandles);
 
         return berylNodes;
@@ -240,7 +245,10 @@ public class CCFModelControl : MonoBehaviour
         List<Task> taskHandles = new List<Task>();
         foreach (CCFTreeNode node in cosmosNodes)
             if (!node.IsLoaded())
-                taskHandles.Add(node.loadNodeModel(separated));
+            {
+                node.LoadNodeModel(separated);
+                taskHandles.Add(node.GetLoadedTask());
+            }
         await Task.WhenAll(taskHandles);
 
         return cosmosNodes;

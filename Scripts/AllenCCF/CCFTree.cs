@@ -85,11 +85,7 @@ public class CCFTreeNode
 
     private Vector3 explodeScale = new Vector3(1f, 1f, 1f);
 
-    private bool loaded;
-
-    // Mesh properties
-    // each mesh has a left and right half, we want to separate these
-    Mesh localMesh;
+    private TaskCompletionSource<bool> loadedSource;
 
     public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
@@ -107,15 +103,20 @@ public class CCFTreeNode
         this.brainModelParent = brainModelParent;
         childNodes = new List<CCFTreeNode>();
 
-        loaded = false;
+        loadedSource = new TaskCompletionSource<bool>();
     }
 
     public bool IsLoaded()
     {
-        return loaded;
+        return loadedSource.Task.Result;
     }
 
-    public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels)
+    public Task<bool> GetLoadedTask()
+    {
+        return loadedSource.Task;
+    }
+
+    public async void LoadNodeModel(bool loadSeparatedModels)
     {
         singleModel = !loadSeparatedModels;
 
@@ -126,40 +127,6 @@ public class CCFTreeNode
 
         Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
         await meshTask;
-
-        LoadNodeModelCompleted(meshTask.Result);
-
-        return this;
-    }
-    //public async Task<CCFTreeNode> loadNodeModel(bool loadSeparatedModels, Action<AsyncOperationHandle> callback)
-    //{
-    //    singleModel = !loadSeparatedModels;
-
-    //    nodeModelGO = new GameObject(Name);
-    //    nodeModelGO.transform.SetParent(brainModelParent);
-
-    //    string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
-
-    //    Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
-    //    await meshTask;
-
-    //    LoadNodeModelCompleted(meshTask.Result);
-
-    //    return this;
-    //}
-
-    private void LoadNodeModelCompleted(Mesh fullMesh)
-    {
-        // Copy the mesh so that we can modify it without modifying the original
-        localMesh = new Mesh();
-        localMesh.vertices = fullMesh.vertices;
-        localMesh.triangles = fullMesh.triangles;
-        //localMesh.uv = fullMesh.uv;
-        localMesh.normals = fullMesh.normals;
-        //localMesh.colors = fullMesh.colors;
-        localMesh.tangents = fullMesh.tangents;
-
-        // Check if the mesh has extra vertices near 0,0,0
 
         if (!singleModel)
         {
@@ -176,7 +143,7 @@ public class CCFTreeNode
             leftRend.material.SetColor("_Color", color);
             leftRend.receiveShadows = false;
             leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelLeftGO.GetComponent<MeshFilter>().mesh = localMesh;
+            nodeModelLeftGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
             nodeModelLeftGO.AddComponent<MeshCollider>();
             nodeModelLeftGO.SetActive(false);
 
@@ -193,7 +160,7 @@ public class CCFTreeNode
             rightRend.material.SetColor("_Color", color);
             rightRend.receiveShadows = false;
             rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelRightGO.GetComponent<MeshFilter>().mesh = localMesh;
+            nodeModelRightGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
             nodeModelRightGO.SetActive(false);
         }
         else
@@ -208,12 +175,14 @@ public class CCFTreeNode
             rend.material.SetColor("_Color", color);
             rend.receiveShadows = false;
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelGO.GetComponent<MeshFilter>().mesh = localMesh;
+            nodeModelGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
 
             nodeModelGO.SetActive(false);
         }
 
-        loaded = true;
+        Debug.Log("Node: " + ID + " finished loading");
+
+        loadedSource.SetResult(true);
     }
 
     public Color GetColor()
@@ -236,13 +205,9 @@ public class CCFTreeNode
         SetColor(defaultColor, true);
     }
 
-    public void SetColor(Color newColor, bool saveColor = true)
+    public async void SetColor(Color newColor, bool saveColor = true)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before color can be set");
-            return;
-        }
+        await loadedSource.Task;
 
         if (saveColor)
             color = newColor;
@@ -256,13 +221,10 @@ public class CCFTreeNode
         }
     }
 
-    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
+    public async void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before color can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         if (singleModel)
         {
             Debug.LogError("Can't set one-sided colors when loading single models.");
@@ -282,13 +244,10 @@ public class CCFTreeNode
         }
     }
 
-    public void SetMaterial(Material newMaterial)
+    public async void SetMaterial(Material newMaterial)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         this.material = newMaterial;
         if (singleModel)
             nodeModelGO.GetComponent<Renderer>().material = newMaterial;
@@ -300,13 +259,10 @@ public class CCFTreeNode
 
         SetColor(color, false);
     }
-    public void SetMaterialOneSided(Material newMaterial, bool leftSide)
+    public async void SetMaterialOneSided(Material newMaterial, bool leftSide)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         this.material = newMaterial;
         if (singleModel)
             Debug.LogError("Can't set sided material in singleModel mode");
@@ -318,13 +274,10 @@ public class CCFTreeNode
         SetColorOneSided(color, leftSide, false);
     }
 
-    public void SetShaderProperty(string property, Vector4 value)
+    public async void SetShaderProperty(string property, Vector4 value)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material properties can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         if (singleModel)
             nodeModelGO.GetComponent<Renderer>().material.SetVector(property, value);
         else
@@ -334,13 +287,10 @@ public class CCFTreeNode
         }
     }
 
-    public void SetShaderPropertyOneSided(string property, Vector4 value, bool leftSide)
+    public async void SetShaderPropertyOneSided(string property, Vector4 value, bool leftSide)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material properties can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         if (singleModel)
             Debug.LogError("Can't set sided properties in single mode");
         else if (leftSide)
@@ -349,13 +299,10 @@ public class CCFTreeNode
             nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
     }
 
-    public void SetShaderProperty(string property, float value)
+    public async void SetShaderProperty(string property, float value)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material properties can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         if (singleModel)
             nodeModelGO.GetComponent<Renderer>().material.SetFloat(property, value);
         else
@@ -364,13 +311,10 @@ public class CCFTreeNode
             nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
         }
     }
-    public void SetShaderPropertyOneSided(string property, float value, bool leftSide)
+    public async void SetShaderPropertyOneSided(string property, float value, bool leftSide)
     {
-        if (!loaded)
-        {
-            Debug.LogError("Node model needs to be loaded before material properties can be set");
-            return;
-        }
+        await loadedSource.Task;
+
         if (singleModel)
             Debug.LogError("Can't set sided properties in single mode");
         else if (leftSide)

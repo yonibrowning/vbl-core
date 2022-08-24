@@ -108,17 +108,25 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle<IList<IResourceLocation>> pathHandle = Addressables.LoadResourceLocationsAsync(path);
         await pathHandle.Task;
 
-        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
+        AsyncOperationHandle<Mesh> loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
         await loadHandle.Task;
 
-        Mesh returnMesh = (Mesh)loadHandle.Result;
+        // Copy the mesh so that we can modify it without modifying the original
+        Mesh returnMesh = new Mesh();
+        returnMesh.vertices = loadHandle.Result.vertices;
+        returnMesh.triangles = loadHandle.Result.triangles;
+        returnMesh.uv = loadHandle.Result.uv;
+        returnMesh.normals = loadHandle.Result.normals;
+        returnMesh.colors = loadHandle.Result.colors;
+        returnMesh.tangents = loadHandle.Result.tangents;
+
         Addressables.Release(pathHandle);
         Addressables.Release(loadHandle);
 
         return returnMesh;
     }
 
-    public static async Task<TextAsset> LoadAllenCCFOntology()
+    public static async Task<string> LoadAllenCCFOntology()
     {
 #if UNITY_EDITOR
         Debug.Log("Loading Allen CCF");
@@ -131,7 +139,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(path);
         await loadHandle.Task;
 
-        TextAsset returnText = (TextAsset)loadHandle.Result;
+        string returnText = ((TextAsset)loadHandle.Result).text;
         Addressables.Release(loadHandle);
 
         return returnText;
@@ -158,7 +166,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
         return returnTexture;
     }
 
-    public static async Task<TextAsset> LoadVolumeIndexes()
+    public static async Task<byte[]> LoadVolumeIndexes()
     {
 #if UNITY_EDITOR
         Debug.Log("Loading volume indexes");
@@ -172,7 +180,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
         AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(volumePath);
         await loadHandle.Task;
 
-        TextAsset resultText = (TextAsset)loadHandle.Result;
+        byte[] resultText = ((TextAsset)loadHandle.Result).bytes;
         Addressables.Release(loadHandle);
 
         return resultText;
@@ -182,7 +190,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// Loads the annotation data to be reconstructed by the VolumeDatasetManager
     /// </summary>
     /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
-    public static async Task<List<TextAsset>> LoadAnnotationIndexMap()
+    public static async Task<List<byte[]>> LoadAnnotationIndexMap()
     {
 #if UNITY_EDITOR
         Debug.Log("Loading annotation index mapping");
@@ -203,10 +211,10 @@ public class AddressablesRemoteLoader : MonoBehaviour
         dataLoaders.Add(mapHandle.Task);
         await Task.WhenAll(dataLoaders);
 
-        List<TextAsset> returnList = new List<TextAsset>() { (TextAsset)indexHandle.Result, (TextAsset)mapHandle.Result };
+        List<byte[]> returnList = new List<byte[]>() { ((TextAsset)indexHandle.Result).bytes, ((TextAsset)mapHandle.Result).bytes };
         Addressables.Release(indexHandle);
         Addressables.Release(mapHandle);
 
         return returnList;
-    } 
+    }
 }
