@@ -7,9 +7,6 @@ public class CCFModelControl : MonoBehaviour
 {
     public CCFTree tree;
 
-    public GameObject ontologyContentPanel;
-    public GameObject ontologyTogglePrefab;
-
     public int heightPerToggle = 20;
 
     //private int lowQualityDepth = 5;
@@ -279,7 +276,7 @@ public class CCFModelControl : MonoBehaviour
             return Color.black;
     }
 
-    public string GetCCFAreaAcronym(int ID)
+    public string ID2Acronym(int ID)
     {
         ID = GetCurrentID(ID);
         if (ccfAreaAcronyms.ContainsKey(ID))
