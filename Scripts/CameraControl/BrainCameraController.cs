@@ -69,16 +69,19 @@ public class BrainCameraController : MonoBehaviour
     void Update()
     {
         // Check the scroll wheel and deal with the field of view
-        float fov = GetZoom();
+        if (!EventSystem.current.IsPointerOverGameObject())
+        {
+            float fov = GetZoom();
 
-        float scroll = -Input.GetAxis("Mouse ScrollWheel");
-        fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll * SpeedMultiplier();
-        fov = Mathf.Clamp(fov, minFoV, maxFoV);
+            float scroll = -Input.GetAxis("Mouse ScrollWheel");
+            fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll * SpeedMultiplier();
+            fov = Mathf.Clamp(fov, minFoV, maxFoV);
 
-        if (brainCamera.orthographic)
-            brainCamera.orthographicSize = fov;
-        else
-            brainCamera.fieldOfView = fov;
+            if (brainCamera.orthographic)
+                brainCamera.orthographicSize = fov;
+            else
+                brainCamera.fieldOfView = fov;
+        }
 
         // Now check if the mouse wheel is being held down
         if (Input.GetMouseButton(1) && !blockBrainControl && !EventSystem.current.IsPointerOverGameObject())
