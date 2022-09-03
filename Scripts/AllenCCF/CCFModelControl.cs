@@ -268,7 +268,7 @@ public class CCFModelControl : MonoBehaviour
 
     public Color GetCCFAreaColor(int ID)
     {
-        ID = GetCurrentID(ID);
+        ID = RemapID(ID);
         if (ccfAreaColors.ContainsKey(ID))
             return ccfAreaColors[ID];
         else
@@ -277,7 +277,7 @@ public class CCFModelControl : MonoBehaviour
 
     public Color GetCCFAreaColorMinDepth(int ID)
     {
-        ID = GetCurrentID(ID);
+        ID = RemapID(ID);
         if (ccfAreaColorsMinDepth.ContainsKey(ID))
             return ccfAreaColorsMinDepth[ID];
         else
@@ -286,7 +286,7 @@ public class CCFModelControl : MonoBehaviour
 
     public string ID2Acronym(int ID)
     {
-        ID = GetCurrentID(ID);
+        ID = RemapID(ID);
         if (ccfAreaAcronyms.ContainsKey(ID))
             return ccfAreaAcronyms[ID];
         else
@@ -307,9 +307,9 @@ public class CCFModelControl : MonoBehaviour
         return ccfAreaAcronyms.ContainsValue(acronym);
     }
 
-    public string GetCCFAreaName(int ID)
+    public string ID2AreaName(int ID)
     {
-        ID = GetCurrentID(ID);
+        ID = RemapID(ID);
         if (ccfAreaNames.ContainsKey(ID))
             return ccfAreaNames[ID];
         else
@@ -323,7 +323,7 @@ public class CCFModelControl : MonoBehaviour
         foreach (KeyValuePair<int, string> kvp in ccfAreaAcronyms)
             if (kvp.Value.ToLower().Contains(match))
             {
-                int currentID = GetCurrentID(kvp.Key);
+                int currentID = RemapID(kvp.Key);
                 if (!ret.Contains(currentID))
                     ret.Add(currentID);
             }
@@ -337,14 +337,14 @@ public class CCFModelControl : MonoBehaviour
         foreach (KeyValuePair<int, string> kvp in ccfAreaNames)
             if (kvp.Value.ToLower().Contains(match))
             {
-                int currentID = GetCurrentID(kvp.Key);
+                int currentID = RemapID(kvp.Key);
                 if (!ret.Contains(currentID))
                     ret.Add(currentID);
             }
         return ret;
     }
 
-    public int GetCurrentID(int ID)
+    public int RemapID(int ID)
     {
         // cosmos remapping strictly supercedes beryl remapping
         if (useCosmosRemap)
