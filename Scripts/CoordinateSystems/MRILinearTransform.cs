@@ -10,7 +10,8 @@ public class MRILinearTransform : CoordinateTransform
 
     private Vector3 invivoConversionAPMLDV = new Vector3(-1.031f, 0.952f, -0.885f);
     private Vector3 inverseConversion = new Vector3(-1 / 1.031f, 1f / 0.952f, -1 / 0.885f);
-    private Vector3 invivoConversionPhiThetaBeta = new Vector3(0f, 7f, 0f);
+    // rotations defined as pitch + = down, yaw + = right, spin + = clockwise
+    private Vector3 invivoConversionPitchYawSpin = new Vector3(-7f, 0f, 0f);
     private Vector3 bregma = new Vector3(5.4f, 5.7f, 0.332f);
 
     public override string Name
