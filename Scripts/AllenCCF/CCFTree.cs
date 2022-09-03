@@ -108,7 +108,7 @@ public class CCFTreeNode
 
     public bool IsLoaded()
     {
-        return loadedSource.Task.Result;
+        return loadedSource.Task.IsCompleted;
     }
 
     public Task<bool> GetLoadedTask()
@@ -128,7 +128,7 @@ public class CCFTreeNode
         Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
         await meshTask;
 
-        if (!singleModel)
+        if (loadSeparatedModels)
         {
             // Create the left/right meshes
             nodeModelLeftGO = new GameObject(Name + "_L");
