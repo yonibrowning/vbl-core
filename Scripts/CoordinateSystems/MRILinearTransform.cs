@@ -36,9 +36,9 @@ public class MRILinearTransform : CoordinateTransform
     /// <param name="needlesCoord">Coordinate should be relative to bregma (ap,ml,dv)</param>
     /// <returns></returns>
     /// <exception cref="System.NotImplementedException"></exception>
-    public override Vector3 ToCCF(Vector3 needlesCoord)
+    public override Vector3 ToCCF(Vector3 mriCoord)
     {
-        Vector3 ccfCoord = Vector3.Scale(needlesCoord, inverseConversion) + bregma;
+        Vector3 ccfCoord = Vector3.Scale(mriCoord, inverseConversion) + bregma;
         return ccfCoord;
     }
 
@@ -49,16 +49,11 @@ public class MRILinearTransform : CoordinateTransform
     /// <returns></returns>
     public override Vector3 FromCCF(Vector3 ccfCoord)
     {
-        Vector3 needlesCoord = Vector3.Scale(ccfCoord - bregma, invivoConversionAPMLDV);
+        Vector3 mriCoord = Vector3.Scale(ccfCoord - bregma, invivoConversionAPMLDV);
         // Apply rotation
-        return needlesCoord;
-    }
 
-    //public Vector3 RotatePointAroundPivot(Vector3 point, Vector3 pivot, Vector3 angles)
-    //{
-    //    Vector3 dir = point - pivot; // get point direction relative to pivot
-    //    dir = Quaternion.Euler(angles) * dir; // rotate it
-    //    point = dir + pivot; // calculate rotated point
-    //    return point; // return it
-    //}
+        Debug.Log(mriCoord);
+
+        return mriCoord;
+    }
 }
