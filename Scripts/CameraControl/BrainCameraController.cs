@@ -77,10 +77,7 @@ public class BrainCameraController : MonoBehaviour
             fov += (brainCamera.orthographic ? orthoDelta : fovDelta) * scroll * SpeedMultiplier();
             fov = Mathf.Clamp(fov, minFoV, maxFoV);
 
-            if (brainCamera.orthographic)
-                brainCamera.orthographicSize = fov;
-            else
-                brainCamera.fieldOfView = fov;
+            SetZoom(fov);
         }
 
         // Now check if the mouse wheel is being held down
@@ -225,6 +222,14 @@ public class BrainCameraController : MonoBehaviour
     public float GetZoom()
     {
         return brainCamera.orthographic ? brainCamera.orthographicSize : brainCamera.fieldOfView;
+    }
+
+    public void SetZoom(float zoom)
+    {
+        if (brainCamera.orthographic)
+            brainCamera.orthographicSize = zoom;
+        else
+            brainCamera.fieldOfView = zoom;
     }
 
     public void SetBrainAxisAngles(Vector2 pitchYaw)
