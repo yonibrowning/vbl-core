@@ -8,8 +8,8 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 
 public class AddressablesRemoteLoader : MonoBehaviour
 {
-    [SerializeField] private string addressablesStorageRemotePath = "http://data.virtualbrainlab.org/AddressablesStorage";
-    [SerializeField] private string buildVersion = "0.1.0";
+    [SerializeField] private string addressablesStorageRemotePath = "https://data.virtualbrainlab.org/AddressablesStorage";
+    [SerializeField] private string buildVersion = "0.2.0";
 
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
