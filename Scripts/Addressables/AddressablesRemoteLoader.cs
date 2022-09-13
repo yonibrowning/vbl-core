@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.Networking;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
@@ -38,6 +39,20 @@ public class AddressablesRemoteLoader : MonoBehaviour
         // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
         // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
         catalogLoadedTask = AsyncLink2Catalog();
+    }
+
+    //Register to override WebRequests Addressables creates to download
+    private void Start()
+    {
+        Addressables.WebRequestOverride = EditWebRequestURL;
+    }
+
+    //Override the url of the WebRequest, the request passed to the method is what would be used as standard by Addressables.
+    private void EditWebRequestURL(UnityWebRequest request)
+    {
+        if (request.url.Contains("http://"))
+            request.url = request.url.Replace("http://", "https://");
+        Debug.Log(request.url);
     }
 
     public void ChangeCatalogServer(string newAddressablesStorageRemotePath) {
@@ -79,9 +94,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
 #endif
         bool finished = true;
         //Load a catalog and automatically release the operation handle.
-#if UNITY_EDITOR
         Debug.Log("Loading content catalog from: " + GetAddressablesPath());
-#endif
 
         AsyncOperationHandle<IResourceLocator> catalogLoadHandle
             = Addressables.LoadContentCatalogAsync(GetAddressablesPath(), true);
