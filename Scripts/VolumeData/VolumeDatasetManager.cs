@@ -63,45 +63,4 @@ public class VolumeDatasetManager : MonoBehaviour
     {
         return annotationDataset;
     }
-
-    // IBL Coverage map
-    [SerializeField] private AssetReference coverageIndexes;
-    private byte[] coverageIndexes_bytes;
-    private uint[] coverageMap = new uint[] { 0, 1, 2 };
-
-    public async Task<bool> LoadIBLCoverage()
-    {
-        bool finished = true;
-
-        Debug.Log("(VDManager) Coverage map loading");
-
-        if (coverageIndexes == null)
-            return false;
-
-        AsyncOperationHandle<TextAsset> coverageLoader = coverageIndexes.LoadAssetAsync<TextAsset>();
-
-        await coverageLoader.Task;
-
-        // When all loaded, copy the data locally using Buffer.BlockCopy()
-        coverageIndexes_bytes = coverageLoader.Result.bytes;
-        Addressables.Release(coverageLoader);
-
-
-        Debug.Log("(VDManager) Coverage map files loaded, building dataset");
-
-        coverageDataset = new VolumetricDataset(new int[] { 528, 320, 456 }, datasetIndexes_bytes, coverageMap, coverageIndexes_bytes);
-        coverageIndexes_bytes = null;
-
-        return finished;
-    }
-
-    public VolumetricDataset GetIBLCoverageDataset()
-    {
-        return coverageDataset;
-    }
-
-    //public Texture3D BuildTexture3D(VolumetricDataset dataset)
-    //{
-
-    //}
 }
