@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CoordinateSpace
+namespace CoordinateSpaces
 {
     /// <summary>
     /// AllenCCF CoordinateSpace defined in (AP,DV,LR) coordinates with 25 um units

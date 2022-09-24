@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CoordinateSpace
+namespace CoordinateSpaces
 {
     /// <summary>
     /// CCF CoordinateSpace defined in (AP,ML,DV) coordinates

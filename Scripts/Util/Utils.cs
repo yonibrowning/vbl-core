@@ -16,9 +16,6 @@ public class Utils : MonoBehaviour
     [SerializeField] AssetReference flatironInfoAsset;
     string token;
 
-
-    private static Vector3 centerOffset = new Vector3(-5.7f, -4.0f, +6.6f);
-
     private void Awake()
     {
         if (flatironInfoAsset.RuntimeKeyIsValid())
@@ -71,32 +68,6 @@ public class Utils : MonoBehaviour
         if (deg > maxDeg) deg -= diff;
 
         return deg;
-    }
-
-    // Note: probably as part of these functions you should be adding/subtracting the GetCenterOffset() from
-    // tpmanager, so that it doesn't have to happen as a subsequent step?
-    public static Vector3 WorldSpace2apdvlr25(Vector3 point)
-    {
-        point = (point + centerOffset) * 1000f / 25f;
-        int ap25 = Mathf.RoundToInt(point.z);
-        int dv25 = Mathf.RoundToInt(-point.y);
-        int lr25 = Mathf.RoundToInt(-point.x);
-        return new Vector3(ap25, dv25, lr25);
-    }
-
-    public static Vector3 apdvlr25_2World(Vector3 apdvlr)
-    {
-        return new Vector3(-apdvlr.z / 40f, -apdvlr.y / 40f, apdvlr.x / 40f) - centerOffset;
-    }
-
-    public static Vector3 apmldv2world(Vector3 point)
-    {
-        return new Vector3(-point.y, -point.z, point.x);
-    }
-
-    public static Vector3 world2apmldv(Vector3 point)
-    {
-        return new Vector3(point.z, -point.x, -point.y);
     }
 
     public float Hypot(Vector2 values)
