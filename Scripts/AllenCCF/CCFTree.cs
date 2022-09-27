@@ -180,7 +180,9 @@ public class CCFTreeNode
             nodeModelGO.SetActive(false);
         }
 
+#if UNITY_EDITOR
         Debug.Log("Node: " + ID + " finished loading");
+#endif
 
         loadedSource.SetResult(true);
     }
@@ -408,13 +410,6 @@ public class CCFTreeNode
     public void appendNode(CCFTreeNode newNode)
     {
         childNodes.Add(newNode);
-    }
-
-    public void DebugPrint()
-    {
-        Debug.Log(this.ID);
-        Debug.Log(this.color);
-        Debug.Log(this.Name);
     }
 
     public Transform GetNodeTransform()

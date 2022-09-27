@@ -1,23 +1,35 @@
 using UnityEngine;
 
 
-public abstract class CoordinateTransform
+namespace CoordinateTransforms
 {
-    public abstract string Name { get; }
-    public abstract string Prefix { get; }
+    public abstract class CoordinateTransform
+    {
+        public abstract string Name { get; }
+        public abstract string Prefix { get; }
 
-    /// <summary>
-    /// Convert from system coordinates back to CCF space
-    /// </summary>
-    /// <param name="systemCoord">System coordinate in ap/dv/lr</param>
-    /// <returns></returns>
-    public abstract Vector3 ToCCF(Vector3 systemCoord);
+        /// <summary>
+        /// Convert from transformed coords back to CoordinateSpace coords
+        /// </summary>
+        /// <param name="coordTransformed">Transformed coordinate</param>
+        /// <returns></returns>
+        public abstract Vector3 Transform2Space(Vector3 coordTransformed);
 
-    /// <summary>
-    /// Convert from CCF coordinates to system coordinates
-    /// </summary>
-    /// <param name="ccfCoord">CCF coordinate in ap/dv/lr</param>
-    /// <returns></returns>
-    public abstract Vector3 FromCCF(Vector3 ccfCoord);
+        /// <summary>
+        /// Convert from CoordinateSpace coords to transformed coords
+        /// </summary>
+        /// <param name="coordSpace">CCF coordinate in ap/dv/lr</param>
+        /// <returns></returns>
+        public abstract Vector3 Space2Transform(Vector3 coordSpace);
 
+        public abstract Vector3 Transform2SpaceRot(Vector3 coordTransformed);
+
+        public abstract Vector3 Space2TransformRot(Vector3 coordSpace);
+
+
+        public override string ToString()
+        {
+            return Name;
+        }
+    }
 }

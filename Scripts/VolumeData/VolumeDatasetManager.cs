@@ -8,7 +8,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class VolumeDatasetManager : MonoBehaviour
 {
-    private AnnotationDataset annotationDataset;
+    private CCFAnnotationDataset annotationDataset;
     
     // Annotations
     private byte[] datasetIndexes_bytes;
@@ -47,7 +47,7 @@ public class VolumeDatasetManager : MonoBehaviour
 
         Debug.Log("(VDManager) Annotation dataset files loaded, building dataset");
 
-        annotationDataset = new AnnotationDataset((528, 320, 456), annotationIndexes_shorts, annotationMap_ints, datasetIndexes_bytes);
+        annotationDataset = new CCFAnnotationDataset((528, 320, 456), annotationIndexes_shorts, annotationMap_ints, datasetIndexes_bytes);
         annotationIndexes_shorts = null;
         annotationMap_ints = null;
 
@@ -58,7 +58,7 @@ public class VolumeDatasetManager : MonoBehaviour
         return finished;
     }
 
-    public AnnotationDataset GetAnnotationDataset()
+    public CCFAnnotationDataset GetAnnotationDataset()
     {
         return annotationDataset;
     }

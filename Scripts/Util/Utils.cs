@@ -28,11 +28,11 @@ public class Utils : MonoBehaviour
     /// </summary>
     /// <param name="phiTheta"></param>
     /// <returns></returns>
-    public static Vector2 World2IBL(Vector2 phiTheta)
+    public static Vector3 World2IBL(Vector3 phiThetaSpin)
     {
-        float iblPhi = -phiTheta.x - 90f;
-        float iblTheta = -phiTheta.y;
-        return new Vector2(iblPhi, iblTheta);
+        float iblPhi = -phiThetaSpin.x - 90f;
+        float iblTheta = -phiThetaSpin.y;
+        return new Vector3(iblPhi, iblTheta, phiThetaSpin.z);
     }
 
     /// <summary>
@@ -40,11 +40,11 @@ public class Utils : MonoBehaviour
     /// </summary>
     /// <param name="iblPhiTheta"></param>
     /// <returns></returns>
-    public static Vector2 IBL2World(Vector2 iblPhiTheta)
+    public static Vector3 IBL2World(Vector3 iblAngles)
     {
-        float worldPhi = -iblPhiTheta.x - 90f;
-        float worldTheta = -iblPhiTheta.y;
-        return new Vector2(worldPhi, worldTheta);
+        float worldPhi = -iblAngles.x - 90f;
+        float worldTheta = -iblAngles.y;
+        return new Vector3(worldPhi, worldTheta, iblAngles.z);
     }
 
 
