@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace CoordinateTransforms
 {
-    public class NullTransform : CoordinateTransform
+    public class CCFTransform : CoordinateTransform
     {
         public override string Name
         {
             get
             {
-                return "Null";
+                return "CCF";
             }
         }
 
@@ -17,7 +17,7 @@ namespace CoordinateTransforms
         {
             get
             {
-                return "null";
+                return "ccf";
             }
         }
 

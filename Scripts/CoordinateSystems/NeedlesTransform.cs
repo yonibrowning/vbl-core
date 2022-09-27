@@ -12,7 +12,7 @@ namespace CoordinateTransforms
         {
             get
             {
-                return "Needles: linear warping on ap/ml";
+                return "Needles";
             }
         }
 

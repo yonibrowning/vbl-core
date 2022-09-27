@@ -20,7 +20,7 @@ namespace CoordinateTransforms
         {
             get
             {
-                return "MRI-Linear: linear warping on ap/ml and rotation on theta";
+                return "MRI";
             }
         }
         public override string Prefix
