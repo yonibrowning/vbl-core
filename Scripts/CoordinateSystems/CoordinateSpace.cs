@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,6 +21,17 @@ namespace CoordinateSpaces
         public override string ToString()
         {
             return Name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CoordinateSpace space &&
+                   Name == space.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name);
         }
     }
 }

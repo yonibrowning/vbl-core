@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 
@@ -30,6 +31,17 @@ namespace CoordinateTransforms
         public override string ToString()
         {
             return Name;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is CoordinateTransform transform &&
+                   Name == transform.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name);
         }
     }
 }
