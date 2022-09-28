@@ -69,23 +69,28 @@ public class CCFTreeNode
     public string Name { get; }
     public string ShortName { get; }
     public int Depth { get; }
-    private Color defaultColor;
-    private Color color;
+    private Color _defaultColor;
+    private Color _color;
     private float scale;
 
-    private bool singleModel;
-    private GameObject nodeModelGO;
+    public Color Color { get { return _color; } }
+    public Color DefaultColor { get { return _defaultColor; } }
 
-    private GameObject nodeModelLeftGO;
-    private GameObject nodeModelRightGO;
+    private GameObject _nodeModelParentGO;
+    private GameObject _nodeModelGO;
+    private GameObject _nodeModelLeftGO;
+    private GameObject _nodeModelRightGO;
 
-    private Transform brainModelParent;
-    private Material material;
+    public GameObject NodeModelParentGO { get { return _nodeModelParentGO; } }
+    public GameObject NodeModelGO { get { return _nodeModelGO; } }
+    public GameObject NodeModelLeftGO { get { return _nodeModelLeftGO; } }
+    public GameObject NodeModelRightGO { get { return _nodeModelRightGO; } }
 
+    private Transform _brainModelParent;
+    private Material _material;
 
-    private Vector3 explodeScale = new Vector3(1f, 1f, 1f);
-
-    private TaskCompletionSource<bool> loadedSource;
+    private TaskCompletionSource<bool> _loadedSourceFull;
+    private TaskCompletionSource<bool> _loadedSourceSeparated;
 
     public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
@@ -97,104 +102,111 @@ public class CCFTreeNode
         this.scale = scale;
         this.ShortName = ShortName;
         color.a = 1.0f;
-        this.color = color;
-        defaultColor = new Color(color.r, color.g, color.b, color.a);
-        this.material = material;
-        this.brainModelParent = brainModelParent;
+        this._color = color;
+        _defaultColor = new Color(color.r, color.g, color.b, color.a);
+        this._material = material;
+        this._brainModelParent = brainModelParent;
         childNodes = new List<CCFTreeNode>();
 
-        loadedSource = new TaskCompletionSource<bool>();
+        _loadedSourceFull = new TaskCompletionSource<bool>();
+        _loadedSourceSeparated = new TaskCompletionSource<bool>();
     }
 
-    public bool IsLoaded()
+    public bool IsLoaded(bool full)
     {
-        return loadedSource.Task.IsCompleted;
+        return full ? _loadedSourceFull.Task.IsCompleted : _loadedSourceSeparated.Task.IsCompleted;
     }
 
-    public Task<bool> GetLoadedTask()
+    public Task<bool> GetLoadedTask(bool full)
     {
-        return loadedSource.Task;
+        return full ? _loadedSourceFull.Task : _loadedSourceSeparated.Task;
     }
 
-    public async void LoadNodeModel(bool loadSeparatedModels)
+    public async void LoadNodeModel(bool loadFull, bool loadSeparated)
     {
-        singleModel = !loadSeparatedModels;
+        _nodeModelParentGO = new GameObject(Name);
+        _nodeModelParentGO.transform.parent = _brainModelParent;
+        _nodeModelParentGO.transform.localPosition = Vector3.zero;
+        _nodeModelParentGO.transform.localRotation = Quaternion.identity;
 
-        nodeModelGO = new GameObject(Name);
-        nodeModelGO.transform.parent = brainModelParent;
-
-        string path = (loadSeparatedModels) ? this.ID + "L.obj" : this.ID + ".obj";
-
-        Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
-        await meshTask;
-
-        if (loadSeparatedModels)
+        if (loadFull)
         {
-            // Create the left/right meshes
-            nodeModelLeftGO = new GameObject(Name + "_L");
-            nodeModelLeftGO.transform.SetParent(nodeModelGO.transform);
-            nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
-            nodeModelLeftGO.AddComponent<MeshFilter>();
-            nodeModelLeftGO.AddComponent<MeshRenderer>();
-            nodeModelLeftGO.layer = 13;
-            nodeModelLeftGO.tag = "BrainRegion";
-            Renderer leftRend = nodeModelLeftGO.GetComponent<Renderer>();
-            leftRend.material = material;
-            leftRend.material.SetColor("_Color", color);
-            leftRend.receiveShadows = false;
-            leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelLeftGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
-            nodeModelLeftGO.AddComponent<MeshCollider>();
-            nodeModelLeftGO.SetActive(false);
+            string path = ID + ".obj";
+            Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
+            await meshTask;
 
-            // Create the right meshes
-            nodeModelRightGO = new GameObject(Name + "_R");
-            nodeModelRightGO.transform.SetParent(nodeModelGO.transform);
-            nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
-            nodeModelRightGO.AddComponent<MeshFilter>();
-            nodeModelRightGO.AddComponent<MeshRenderer>();
-            nodeModelRightGO.layer = 13;
-            nodeModelRightGO.tag = "BrainRegion";
-            Renderer rightRend = nodeModelRightGO.GetComponent<Renderer>();
-            rightRend.material = material;
-            rightRend.material.SetColor("_Color", color);
-            rightRend.receiveShadows = false;
-            rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelRightGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
-            nodeModelRightGO.SetActive(false);
-        }
-        else
-        {
-            nodeModelGO.transform.localScale = new Vector3(scale, scale, scale);
-            nodeModelGO.AddComponent<MeshFilter>();
-            nodeModelGO.AddComponent<MeshRenderer>();
-            nodeModelGO.layer = 13;
-            nodeModelGO.tag = "BrainRegion";
-            Renderer rend = nodeModelGO.GetComponent<Renderer>();
-            rend.material = material;
-            rend.material.SetColor("_Color", color);
+            _nodeModelGO = new GameObject(Name);
+            _nodeModelGO.transform.SetParent(_nodeModelParentGO.transform);
+            _nodeModelGO.transform.localScale = new Vector3(scale, scale, scale);
+            _nodeModelGO.AddComponent<MeshFilter>();
+            _nodeModelGO.AddComponent<MeshRenderer>();
+            _nodeModelGO.layer = 13;
+            _nodeModelGO.tag = "BrainRegion";
+            Renderer rend = _nodeModelGO.GetComponent<Renderer>();
+            rend.material = _material;
+            rend.material.SetColor("_Color", _color);
             rend.receiveShadows = false;
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            nodeModelGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
+            _nodeModelGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
 
-            nodeModelGO.SetActive(false);
+            _nodeModelGO.transform.localPosition = Vector3.zero;
+            _nodeModelGO.transform.localRotation = Quaternion.identity;
+            _nodeModelGO.SetActive(false);
+
+            _loadedSourceFull.SetResult(true);
+        }
+
+        if (loadSeparated)
+        {
+            string path = ID + "L.obj";
+            Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
+            await meshTask;
+
+            // Create the left/right meshes
+            _nodeModelLeftGO = new GameObject(Name + "_L");
+            _nodeModelLeftGO.transform.SetParent(_nodeModelParentGO.transform);
+            _nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
+            _nodeModelLeftGO.AddComponent<MeshFilter>();
+            _nodeModelLeftGO.AddComponent<MeshRenderer>();
+            _nodeModelLeftGO.layer = 13;
+            _nodeModelLeftGO.tag = "BrainRegion";
+            Renderer leftRend = _nodeModelLeftGO.GetComponent<Renderer>();
+            leftRend.material = _material;
+            leftRend.material.SetColor("_Color", _color);
+            leftRend.receiveShadows = false;
+            leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _nodeModelLeftGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
+            _nodeModelLeftGO.AddComponent<MeshCollider>();
+
+            _nodeModelLeftGO.transform.localPosition = Vector3.zero;
+            _nodeModelLeftGO.transform.localRotation = Quaternion.identity;
+            _nodeModelLeftGO.SetActive(false);
+
+            // Create the right meshes
+            _nodeModelRightGO = new GameObject(Name + "_R");
+            _nodeModelRightGO.transform.SetParent(_nodeModelParentGO.transform);
+            _nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
+            _nodeModelRightGO.AddComponent<MeshFilter>();
+            _nodeModelRightGO.AddComponent<MeshRenderer>();
+            _nodeModelRightGO.layer = 13;
+            _nodeModelRightGO.tag = "BrainRegion";
+            Renderer rightRend = _nodeModelRightGO.GetComponent<Renderer>();
+            rightRend.material = _material;
+            rightRend.material.SetColor("_Color", _color);
+            rightRend.receiveShadows = false;
+            rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            _nodeModelRightGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
+
+            _nodeModelRightGO.transform.localPosition = Vector3.zero;
+            _nodeModelRightGO.transform.localRotation = Quaternion.identity;
+            _nodeModelRightGO.SetActive(false);
+
+            _loadedSourceSeparated.SetResult(true);
         }
 
 #if UNITY_EDITOR
         Debug.Log("Node: " + ID + " finished loading");
 #endif
-
-        loadedSource.SetResult(true);
-    }
-
-    public Color GetColor()
-    {
-        return color;
-    }
-
-    public Color GetDefaultColor()
-    {
-        return defaultColor;
     }
 
     public List<CCFTreeNode> GetChildren()
@@ -204,175 +216,130 @@ public class CCFTreeNode
 
     public void ResetColor()
     {
-        SetColor(defaultColor, true);
+        SetColor(_defaultColor, true);
     }
 
-    public async void SetColor(Color newColor, bool saveColor = true)
+    public void SetColor(Color newColor, bool saveColor = true)
     {
-        await loadedSource.Task;
-
         if (saveColor)
-            color = newColor;
+            _color = newColor;
 
-        if (singleModel)
-            nodeModelGO.GetComponent<Renderer>().material.SetColor("_Color", color);
-        else
+        if (_nodeModelGO != null)
+            _nodeModelGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", color);
-            nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", color);
+            _nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+            _nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
         }
     }
 
-    public async void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
+    public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
     {
-        await loadedSource.Task;
-
-        if (singleModel)
-        {
-            Debug.LogError("Can't set one-sided colors when loading single models.");
-            return;
-        }
-
         if (saveColor)
-            color = newColor;
+            _color = newColor;
 
-        if (leftSide)
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+            if (leftSide)
+                _nodeModelLeftGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+            else
+                _nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
         }
         else
+            Debug.LogError("Model must be loaded before rendering");
+    }
+
+    public void SetMaterial(Material newMaterial)
+    {
+        _material = newMaterial;
+
+        if (_nodeModelGO != null)
+            _nodeModelGO.GetComponent<Renderer>().material = newMaterial;
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelRightGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
+            _nodeModelLeftGO.GetComponent<Renderer>().material = newMaterial;
+            _nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
+        }
+
+        SetColor(_color, false);
+    }
+    public void SetMaterialOneSided(Material newMaterial, bool leftSide)
+    {
+        _material = newMaterial;
+
+        if (_nodeModelLeftGO != null)
+        {
+            if (leftSide)
+                _nodeModelLeftGO.GetComponent<Renderer>().material = newMaterial;
+            else
+                _nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
+        }
+        else
+            Debug.LogError("Model must be loaded before rendering");
+
+        SetColorOneSided(_color, leftSide, false);
+    }
+
+    public void SetShaderProperty(string property, Vector4 value)
+    {
+        if (_nodeModelGO != null)
+            _nodeModelGO.GetComponent<Renderer>().material.SetVector(property, value);
+        
+        if (_nodeModelLeftGO != null)
+        {
+            _nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
+            _nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
         }
     }
 
-    public async void SetMaterial(Material newMaterial)
+    public void SetShaderPropertyOneSided(string property, Vector4 value, bool leftSide)
     {
-        await loadedSource.Task;
-
-        this.material = newMaterial;
-        if (singleModel)
-            nodeModelGO.GetComponent<Renderer>().material = newMaterial;
-        else
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material = newMaterial;
-            nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
+            if (leftSide)
+                _nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
+            else
+                _nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
         }
-
-        SetColor(color, false);
-    }
-    public async void SetMaterialOneSided(Material newMaterial, bool leftSide)
-    {
-        await loadedSource.Task;
-
-        this.material = newMaterial;
-        if (singleModel)
-            Debug.LogError("Can't set sided material in singleModel mode");
-        else if (leftSide)
-            nodeModelLeftGO.GetComponent<Renderer>().material = newMaterial;
         else
-            nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
-
-        SetColorOneSided(color, leftSide, false);
+            Debug.LogError("Model must be loaded before rendering");
     }
 
-    public async void SetShaderProperty(string property, Vector4 value)
+    public void SetShaderProperty(string property, float value)
     {
-        await loadedSource.Task;
+        if (_nodeModelGO != null)
+            _nodeModelGO.GetComponent<Renderer>().material.SetFloat(property, value);
 
-        if (singleModel)
-            nodeModelGO.GetComponent<Renderer>().material.SetVector(property, value);
-        else
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
-            nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
+            _nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
+            _nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
         }
     }
-
-    public async void SetShaderPropertyOneSided(string property, Vector4 value, bool leftSide)
+    public void SetShaderPropertyOneSided(string property, float value, bool leftSide)
     {
-        await loadedSource.Task;
-
-        if (singleModel)
-            Debug.LogError("Can't set sided properties in single mode");
-        else if (leftSide)
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetVector(property, value);
-        else
-            nodeModelRightGO.GetComponent<Renderer>().material.SetVector(property, value);
-    }
-
-    public async void SetShaderProperty(string property, float value)
-    {
-        await loadedSource.Task;
-
-        if (singleModel)
-            nodeModelGO.GetComponent<Renderer>().material.SetFloat(property, value);
-        else
+        if (_nodeModelLeftGO != null)
         {
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
-            nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
+            if (leftSide)
+                _nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
+            else
+                _nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
         }
-    }
-    public async void SetShaderPropertyOneSided(string property, float value, bool leftSide)
-    {
-        await loadedSource.Task;
-
-        if (singleModel)
-            Debug.LogError("Can't set sided properties in single mode");
-        else if (leftSide)
-            nodeModelLeftGO.GetComponent<Renderer>().material.SetFloat(property, value);
         else
-            nodeModelRightGO.GetComponent<Renderer>().material.SetFloat(property, value);
+            Debug.LogError("Model must be loaded before rendering");
     }
 
 
-    public void SetNodeModelVisibility(bool visible)
+    public void SetNodeModelVisibility(bool fullVisible = false, bool leftVisible = false, bool rightVisible = false)
     {
-        if (singleModel)
-        {
-            nodeModelGO.SetActive(visible);
-        }
-        else
-        {
-            nodeModelLeftGO.SetActive(visible);
-            nodeModelRightGO.SetActive(visible);
-        }
-    }
+        if (_nodeModelGO != null)
+            _nodeModelGO.SetActive(fullVisible);
 
-    public void SetNodeModelVisibilityLeft(bool leftVisible)
-    {
-        if (singleModel)
+        if (_nodeModelLeftGO != null)
         {
-            Debug.LogWarning("Node model visibility cannot be set separately when running in single model mode.");
-        }
-        else
-        {
-            nodeModelLeftGO.SetActive(leftVisible);
-        }
-    }
-
-    public void SetNodeModelVisibilityRight(bool rightVisible)
-    {
-        if (singleModel)
-        {
-            Debug.LogWarning("Node model visibility cannot be set separately when running in single model mode.");
-        }
-        else
-        {
-            nodeModelLeftGO.SetActive(rightVisible);
-        }
-    }
-
-    public void SetNodeModelVisibility(bool leftVisible, bool rightVisible)
-    {
-        if (singleModel)
-        {
-            Debug.LogWarning("Node model visibility cannot be set separately when running in single model mode.");
-        }
-        else
-        {
-            nodeModelLeftGO.SetActive(leftVisible);
-            nodeModelRightGO.SetActive(rightVisible);
+            _nodeModelLeftGO.SetActive(leftVisible);
+            _nodeModelRightGO.SetActive(rightVisible);
         }
     }
 
@@ -414,31 +381,19 @@ public class CCFTreeNode
 
     public Transform GetNodeTransform()
     {
-        return nodeModelGO.transform;
+        return _nodeModelParentGO.transform;
     }
 
-    public Vector3 GetMeshCenter(bool leftSide = false, bool rightSide = false)
+    public Vector3 GetMeshCenterFull()
     {
-        if (singleModel)
-            return nodeModelGO.GetComponent<Renderer>().bounds.center;
-        else if (leftSide)
-            return nodeModelLeftGO.GetComponent<Renderer>().bounds.center;
-        else if (rightSide)
-            return nodeModelRightGO.GetComponent<Renderer>().bounds.center;
+        return _nodeModelGO.GetComponent<Renderer>().bounds.center;
+    }
+
+    public Vector3 GetMeshCenterSided(bool left)
+    {
+        if (left)
+            return _nodeModelLeftGO.GetComponent<Renderer>().bounds.center;
         else
-            return nodeModelLeftGO.GetComponent<Renderer>().bounds.center + nodeModelRightGO.GetComponent<Renderer>().bounds.center;
-    }
-
-    public GameObject MainGameObject()
-    {
-        return nodeModelGO;
-    }
-    public GameObject LeftGameObject()
-    {
-        return nodeModelLeftGO;
-    }
-    public GameObject RightGameObject()
-    {
-        return nodeModelRightGO;
+            return _nodeModelRightGO.GetComponent<Renderer>().bounds.center;
     }
 }

@@ -172,16 +172,17 @@ public class CCFModelControl : MonoBehaviour
                     {
                         if (id == beryl && !missing.Contains(id))
                         {
-                            node.LoadNodeModel(true);
-                            defaultLoadedNodesTasks.Add(node.GetLoadedTask());
+                            node.LoadNodeModel(true, true);
+                            defaultLoadedNodesTasks.Add(node.GetLoadedTask(true));
+                            defaultLoadedNodesTasks.Add(node.GetLoadedTask(false));
                             defaultLoadedNodes.Add(node);
                         }
                     }
                     else if (defaultNodes.Contains(id))
                     {
                         // Note: it's fine not to await this asynchronous call, we don't need to use the node model for anything in this function
-                        node.LoadNodeModel(false);
-                        defaultLoadedNodesTasks.Add(node.GetLoadedTask());
+                        node.LoadNodeModel(true, false);
+                        defaultLoadedNodesTasks.Add(node.GetLoadedTask(true));
                         defaultLoadedNodes.Add(node);
                     }
                 }
@@ -222,14 +223,14 @@ public class CCFModelControl : MonoBehaviour
     /// Convenience function to load all beryl nodes and set visible (if they aren't already loaded)
     /// </summary>
     /// <returns>Beryl nodes</returns>
-    public async Task<List<CCFTreeNode>> LoadBerylNodes(bool separated)
+    public async Task<List<CCFTreeNode>> LoadBerylNodes(bool full)
     {
         List<Task> taskHandles = new List<Task>();
         foreach (CCFTreeNode node in berylNodes)
-            if (!node.IsLoaded())
+            if (!node.IsLoaded(full))
             {
-                node.LoadNodeModel(separated);
-                taskHandles.Add(node.GetLoadedTask());
+                node.LoadNodeModel(full, !full);
+                taskHandles.Add(node.GetLoadedTask(full));
             }
         await Task.WhenAll(taskHandles);
 
@@ -240,14 +241,14 @@ public class CCFModelControl : MonoBehaviour
     /// Convenience function to load all cosmos nodes and set visible (if they aren't already loaded)
     /// </summary>
     /// <returns>Cosmos nodes</returns>
-    public async Task<List<CCFTreeNode>> LoadCosmosNodes(bool separated)
+    public async Task<List<CCFTreeNode>> LoadCosmosNodes(bool full)
     {
         List<Task> taskHandles = new List<Task>();
         foreach (CCFTreeNode node in cosmosNodes)
-            if (!node.IsLoaded())
+            if (!node.IsLoaded(full))
             {
-                node.LoadNodeModel(separated);
-                taskHandles.Add(node.GetLoadedTask());
+                node.LoadNodeModel(full, !full);
+                taskHandles.Add(node.GetLoadedTask(full));
             }
         await Task.WhenAll(taskHandles);
 
