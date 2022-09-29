@@ -65,17 +65,18 @@ public class CCFTreeNode
     private CCFTreeNode parent;
     private List<CCFTreeNode> childNodes;
     public int ID { get;}
-    public int atlasID { get; }
+    public int AtlasID { get; }
     public string Name { get; }
     public string ShortName { get; }
     public int Depth { get; }
     private Color _defaultColor;
     private Color _color;
-    private float scale;
+    private float _scale;
 
     public Color Color { get { return _color; } }
     public Color DefaultColor { get { return _defaultColor; } }
 
+    #region gameobjects
     private GameObject _nodeModelParentGO;
     private GameObject _nodeModelGO;
     private GameObject _nodeModelLeftGO;
@@ -85,9 +86,13 @@ public class CCFTreeNode
     public GameObject NodeModelGO { get { return _nodeModelGO; } }
     public GameObject NodeModelLeftGO { get { return _nodeModelLeftGO; } }
     public GameObject NodeModelRightGO { get { return _nodeModelRightGO; } }
+    #endregion
 
     private Transform _brainModelParent;
     private Material _material;
+
+    private Vector3[] verticesFull;
+    private Vector3[] verticesSided;
 
     private TaskCompletionSource<bool> _loadedSourceFull;
     private TaskCompletionSource<bool> _loadedSourceSeparated;
@@ -95,11 +100,11 @@ public class CCFTreeNode
     public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
         this.ID = ID;
-        this.atlasID = atlasID;
+        this.AtlasID = atlasID;
         this.Name = Name;
         this.parent = parent;
         this.Depth = depth;
-        this.scale = scale;
+        this._scale = scale;
         this.ShortName = ShortName;
         color.a = 1.0f;
         this._color = color;
@@ -137,7 +142,7 @@ public class CCFTreeNode
 
             _nodeModelGO = new GameObject(Name);
             _nodeModelGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelGO.transform.localScale = new Vector3(scale, scale, scale);
+            _nodeModelGO.transform.localScale = new Vector3(_scale, _scale, _scale);
             _nodeModelGO.AddComponent<MeshFilter>();
             _nodeModelGO.AddComponent<MeshRenderer>();
             _nodeModelGO.layer = 13;
@@ -165,7 +170,7 @@ public class CCFTreeNode
             // Create the left/right meshes
             _nodeModelLeftGO = new GameObject(Name + "_L");
             _nodeModelLeftGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelLeftGO.transform.localScale = new Vector3(scale, scale, scale);
+            _nodeModelLeftGO.transform.localScale = new Vector3(_scale, _scale, _scale);
             _nodeModelLeftGO.AddComponent<MeshFilter>();
             _nodeModelLeftGO.AddComponent<MeshRenderer>();
             _nodeModelLeftGO.layer = 13;
@@ -185,7 +190,7 @@ public class CCFTreeNode
             // Create the right meshes
             _nodeModelRightGO = new GameObject(Name + "_R");
             _nodeModelRightGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelRightGO.transform.localScale = new Vector3(scale, scale, -scale);
+            _nodeModelRightGO.transform.localScale = new Vector3(_scale, _scale, -_scale);
             _nodeModelRightGO.AddComponent<MeshFilter>();
             _nodeModelRightGO.AddComponent<MeshRenderer>();
             _nodeModelRightGO.layer = 13;
@@ -395,5 +400,38 @@ public class CCFTreeNode
             return _nodeModelLeftGO.GetComponent<Renderer>().bounds.center;
         else
             return _nodeModelRightGO.GetComponent<Renderer>().bounds.center;
+    }
+
+    /// <summary>
+    /// This may be a very expensive function to run.
+    /// </summary>
+    /// <param name="transformFunction"></param>
+    /// <param name="full"></param>
+    public void TransformVertices(Func<Vector3, Vector3> transformFunction, bool full)
+    {
+        if (full)
+        {
+            verticesFull = _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices;
+            Vector3[] verticesNew = new Vector3[verticesFull.Length];
+            for (var i = 0; i < verticesFull.Length; i++)
+            {
+                // transform to world space, then run through the transform function (presumbly the World2Transform of the active ProbeInsertion)
+                Vector3 world = _nodeModelGO.transform.TransformPoint(verticesFull[i]);
+                // transform from world space to *transformed* world space, using the transformFunction we were passed
+                //Vector3 worldTransformed = transformFunction(world);
+                // transform back to local space
+                verticesNew[i] = _nodeModelGO.transform.InverseTransformPoint(world);
+            }
+
+            _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices = verticesNew;
+        }
+    }
+
+    public void ClearTransform(bool full)
+    {
+        if (full)
+        {
+            _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices = verticesFull;
+        }
     }
 }

@@ -61,21 +61,9 @@ namespace CoordinateTransforms
         /// <summary>
         /// Angles are (yaw, pitch, spin)
         /// </summary>
-        public NeedlesTransform() : base(new Vector3(-5.4f, -5.7f, -0.332f),
-            new Vector3(-1.087f, 1f, -0.952f),
-            new Vector3(0f, 0f, 0f))
+        public NeedlesTransform() : base(new Vector3(-1.087f, 1f, -0.952f), new Vector3(0f, 0f, 0f))
         {
 
-        }
-
-        public override Vector3 Transform2SpaceRot(Vector3 coordTransformed)
-        {
-            return new Vector3(-coordTransformed.x, coordTransformed.y, -coordTransformed.z);
-        }
-
-        public override Vector3 Space2TransformRot(Vector3 coordSpace)
-        {
-            return new Vector3(-coordSpace.x, coordSpace.y, -coordSpace.z);
         }
     }
 }

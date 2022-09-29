@@ -11,7 +11,6 @@ namespace CoordinateSpaces
         private Vector3 _dimensions = new Vector3(13.2f, 11.4f, 8f);
         private Vector3 _zeroOffset = new Vector3(-5.7f, -4.0f, +6.6f);
 
-
         public override Vector3 Dimensions
         {
             get
@@ -24,12 +23,12 @@ namespace CoordinateSpaces
 
         public override Vector3 Space2World(Vector3 coord)
         {
-            return Space2WorldRot(coord) - _zeroOffset;
+            return Space2WorldRot(coord) - _zeroOffset - RelativeOffset;
         }
 
         public override Vector3 World2Space(Vector3 world)
         {
-            return World2SpaceRot(world + _zeroOffset);
+            return World2SpaceRot(world + _zeroOffset + RelativeOffset);
         }
 
         public override Vector3 World2SpaceRot(Vector3 world)
