@@ -9,7 +9,7 @@ namespace CoordinateSpaces
     {
         private string _name = "CCF";
         private Vector3 _dimensions = new Vector3(13.2f, 11.4f, 8f);
-        private Vector3 _zeroOffset = new Vector3(-5.7f, -4.0f, +6.6f);
+        private Vector3 _zeroOffset = new Vector3(-5.7f, -4.0f, +6.6f); // note: zero offset is in *world* coordinates!
 
         public override Vector3 Dimensions
         {
@@ -23,12 +23,12 @@ namespace CoordinateSpaces
 
         public override Vector3 Space2World(Vector3 coord)
         {
-            return Space2WorldRot(coord) - _zeroOffset - RelativeOffset;
+            return Space2WorldRot(coord + RelativeOffset) - _zeroOffset;
         }
 
         public override Vector3 World2Space(Vector3 world)
         {
-            return World2SpaceRot(world + _zeroOffset + RelativeOffset);
+            return World2SpaceRot(world + _zeroOffset) - RelativeOffset;
         }
 
         public override Vector3 Space2WorldRot(Vector3 coord)

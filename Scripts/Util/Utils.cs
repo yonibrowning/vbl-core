@@ -13,8 +13,11 @@ using Random = UnityEngine.Random;
 
 public class Utils : MonoBehaviour
 {
+    public static Vector3 IBL_BREGMA = new Vector3(5.4f, 5.7f, 0.332f);
+
     [SerializeField] AssetReference flatironInfoAsset;
     string token;
+
 
     private void Awake()
     {
@@ -126,13 +129,6 @@ public class Utils : MonoBehaviour
         return new float4(color.r, color.g, color.b, color.a);
     }
 
-    public float GaussianNoise()
-    {
-        float u1 = 1.0f - Random.value; // uniform(0,1] random doubles
-        float u2 = 1.0f - Random.value;
-        return Mathf.Sqrt(-2.0f * Mathf.Log(u1)) * Mathf.Sin(2.0f * Mathf.PI * u2); // random normal(mean,stdDev^2)
-    }
-
     // Note that this might be possible to replace by:
     // Buffer.BlockCopy()
     // see https://stackoverflow.com/questions/6952923/conversion-double-array-to-byte-array
@@ -192,54 +188,6 @@ public class Utils : MonoBehaviour
         Debug.LogFormat("Found {0} Doubles", data.Length);
 
         return data;
-    }
-
-
-
-    public void LoadFlatIronData(string dataType, string uri, Action<string, Array> callback)
-    {
-        if (flatironInfoAsset != null)
-            StartCoroutine(FlationRequestNPY(dataType, uri, callback));
-        else
-            Debug.LogError("FlatIron token is not loaded, can't request data");
-    }
-
-    private IEnumerator FlationRequestNPY(string dataType, string uri, Action<string, Array> callback)
-    {
-        Debug.Log("A Coroutine requested was started for: " + uri);
-
-        using (UnityWebRequest webRequest = UnityWebRequest.Get(uri))
-        {
-            // Request and wait for the desired page.
-            string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1")
-                                           .GetBytes(token));
-            webRequest.SetRequestHeader("Authorization", "Basic " + encoded);
-            webRequest.SetRequestHeader("Encoding", "gzip");
-            yield return webRequest.SendWebRequest();
-
-            string[] pages = uri.Split('/');
-            int page = pages.Length - 1;
-
-            switch (webRequest.result)
-            {
-                case UnityWebRequest.Result.ConnectionError:
-                case UnityWebRequest.Result.DataProcessingError:
-                    Debug.LogError(pages[page] + ": Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.ProtocolError:
-                    Debug.LogError(pages[page] + ": HTTP Error: " + webRequest.error);
-                    break;
-                case UnityWebRequest.Result.Success:
-                    Debug.Log(pages[page] + ":\nReceived: " + webRequest.downloadHandler.text);
-                    Debug.Log(webRequest.downloadedBytes);
-                    byte[] data = webRequest.downloadHandler.data;
-                    MemoryStream stream = new MemoryStream(data);
-                    callback(dataType, LoadNPY(stream));
-                    break;
-            }
-        }
-
-        Debug.Log("GetRequest complete on URL" + uri);
     }
 
     private static Array LoadNPY(Stream stream)
@@ -395,25 +343,5 @@ public class Utils : MonoBehaviour
         }
 
         return littleEndian;
-    }
-
-
-    public Dictionary<string, float3> LoadIBLmlapdv()
-    {
-        // load the UUID and MLAPDV data
-        List<Dictionary<string, object>> data_mlapdv = CSVReader.ReadFromResources("Datasets/ibl/uuid_mlapdv");
-        Dictionary<string, float3> mlapdvData = new Dictionary<string, float3>();
-        float scale = 1000f;
-
-        for (var i = 0; i < data_mlapdv.Count; i++)
-        {
-            string uuid = (string)data_mlapdv[i]["uuid"];
-            float ml = (float)data_mlapdv[i]["ml"] / scale;
-            float ap = (float)data_mlapdv[i]["ap"] / scale;
-            float dv = (float)data_mlapdv[i]["dv"] / scale;
-            mlapdvData.Add(uuid, new float3(ml, ap, dv));
-        }
-
-        return mlapdvData;
     }
 }

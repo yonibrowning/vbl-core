@@ -104,8 +104,6 @@ public class CCFModelControl : MonoBehaviour
         Debug.Log("Ontology start called");
         if (!overrideNetwork) return;
 
-        Debug.LogWarning("On MLAPI compatible systems we shouldn't load the annotation dataset on the client!!");
-
         LoadCSVData(loadDefaults);
         started = true;
     }
