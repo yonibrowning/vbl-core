@@ -31,14 +31,14 @@ namespace CoordinateSpaces
             return World2SpaceRot(world + _zeroOffset + RelativeOffset);
         }
 
-        public override Vector3 World2SpaceRot(Vector3 world)
-        {
-            return new Vector3(world.z, -world.x, -world.y);
-        }
-
         public override Vector3 Space2WorldRot(Vector3 coord)
         {
             return new Vector3(-coord.y, -coord.z, coord.x);
+        }
+
+        public override Vector3 World2SpaceRot(Vector3 world)
+        {
+            return new Vector3(world.z, -world.x, -world.y);
         }
 
     }
