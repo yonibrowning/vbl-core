@@ -19,33 +19,55 @@ namespace CoordinateTransforms
         {
             _scaling = scaling;
             _inverseScaling = new Vector3(1f / _scaling.x, 1f / _scaling.y, 1f / _scaling.z);
-            _rotation = Quaternion.identity;
-            _inverseRotation = Quaternion.identity;
-            //_rotation = Quaternion.Euler(rotation);
-            //_inverseRotation = Quaternion.Inverse(_rotation);
+            _rotation = Quaternion.Euler(rotation);
+            _inverseRotation = Quaternion.Inverse(_rotation);
         }
 
+        /// <summary>
+        /// Transform a coordinate by this AffineTransform
+        /// </summary>
+        /// <param name="ccfCoord"></param>
+        /// <returns></returns>
         public override Vector3 Space2Transform(Vector3 ccfCoord)
         {
             return _rotation * Vector3.Scale(ccfCoord, _scaling);
         }
 
+        /// <summary>
+        /// Invert a coordinate from this AffineTransform back to it's CoordinateSpace
+        /// </summary>
+        /// <param name="coordTransformed"></param>
+        /// <returns></returns>
         public override Vector3 Transform2Space(Vector3 coordTransformed)
         {
             return Vector3.Scale(_inverseRotation * coordTransformed, _inverseScaling);
         }
 
+        /// <summary>
+        /// Rotate any axes that have been flipped in the Transformed space
+        /// 
+        /// Note: this does **NOT** apply the AffineTransform rotation!
+        /// </summary>
+        /// <param name="coordSpace"></param>
+        /// <returns></returns>
         public override Vector3 Space2TransformRot(Vector3 coordSpace)
         {
-            return _rotation * new Vector3(
+            return new Vector3(
                 Mathf.Sign(_scaling.x) * coordSpace.x,
                 Mathf.Sign(_scaling.y) * coordSpace.y,
                 Mathf.Sign(_scaling.z) * coordSpace.z);
         }
 
+        /// <summary>
+        /// Un-rotate any axes that have been flipped in the Transformed space
+        /// 
+        /// Note: this does **NOT** reverse the AffineTransform rotation!
+        /// </summary>
+        /// <param name="coordTransformed"></param>
+        /// <returns></returns>
         public override Vector3 Transform2SpaceRot(Vector3 coordTransformed)
         {
-            return _inverseRotation * new Vector3(
+            return new Vector3(
                 Mathf.Sign(_inverseScaling.x) * coordTransformed.x,
                 Mathf.Sign(_inverseScaling.y) * coordTransformed.y,
                 Mathf.Sign(_inverseScaling.z) * coordTransformed.z);

@@ -411,19 +411,33 @@ public class CCFTreeNode
     {
         if (full)
         {
-            verticesFull = _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices;
+            if (verticesFull==null)
+                verticesFull = _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices;
+
             Vector3[] verticesNew = new Vector3[verticesFull.Length];
             for (var i = 0; i < verticesFull.Length; i++)
             {
-                // transform to world space, then run through the transform function (presumbly the World2Transform of the active ProbeInsertion)
-                Vector3 world = _nodeModelGO.transform.TransformPoint(verticesFull[i]);
+                // transform to world space
                 // transform from world space to *transformed* world space, using the transformFunction we were passed
-                //Vector3 worldTransformed = transformFunction(world);
                 // transform back to local space
-                verticesNew[i] = _nodeModelGO.transform.InverseTransformPoint(world);
+                verticesNew[i] = _nodeModelGO.transform.InverseTransformPoint(transformFunction(_nodeModelGO.transform.TransformPoint(verticesFull[i])));
             }
 
             _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices = verticesNew;
+        }
+        else
+        {
+            if (verticesSided == null)
+                verticesSided = _nodeModelLeftGO.GetComponent<MeshFilter>().mesh.vertices;
+
+            Vector3[] verticesNew = new Vector3[verticesSided.Length];
+            for (var i = 0; i < verticesSided.Length; i++)
+            {
+                verticesNew[i] = _nodeModelGO.transform.InverseTransformPoint(transformFunction(_nodeModelGO.transform.TransformPoint(verticesSided[i])));
+            }
+
+            _nodeModelLeftGO.GetComponent<MeshFilter>().mesh.vertices = verticesNew;
+            _nodeModelRightGO.GetComponent<MeshFilter>().mesh.vertices = verticesNew;
         }
     }
 
@@ -432,6 +446,11 @@ public class CCFTreeNode
         if (full)
         {
             _nodeModelGO.GetComponent<MeshFilter>().mesh.vertices = verticesFull;
+        }
+        else
+        {
+            _nodeModelLeftGO.GetComponent<MeshFilter>().mesh.vertices = verticesSided;
+            _nodeModelRightGO.GetComponent<MeshFilter>().mesh.vertices = verticesSided;
         }
     }
 }
