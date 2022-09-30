@@ -31,7 +31,7 @@ namespace CoordinateSpaces
         public override Vector3 World2Space(Vector3 world)
         {
             Vector3 coord = World2SpaceRot(world + _zeroOffset) * 40f;
-            return new Vector3(Mathf.RoundToInt(coord.x), Mathf.RoundToInt(coord.y), Mathf.RoundToInt(coord.z));
+            return new Vector3(coord.x, coord.y, coord.z);
         }
 
         public override Vector3 Space2WorldRot(Vector3 coord)
