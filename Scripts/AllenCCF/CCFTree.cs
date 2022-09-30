@@ -433,7 +433,7 @@ public class CCFTreeNode
             Vector3[] verticesNew = new Vector3[verticesSided.Length];
             for (var i = 0; i < verticesSided.Length; i++)
             {
-                verticesNew[i] = _nodeModelGO.transform.InverseTransformPoint(transformFunction(_nodeModelGO.transform.TransformPoint(verticesSided[i])));
+                verticesNew[i] = _nodeModelLeftGO.transform.InverseTransformPoint(transformFunction(_nodeModelLeftGO.transform.TransformPoint(verticesSided[i])));
             }
 
             _nodeModelLeftGO.GetComponent<MeshFilter>().mesh.vertices = verticesNew;
