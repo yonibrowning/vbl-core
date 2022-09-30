@@ -15,17 +15,6 @@ public class Utils : MonoBehaviour
 {
     public static Vector3 IBL_BREGMA = new Vector3(5.4f, 5.7f, 0.332f);
 
-    [SerializeField] AssetReference flatironInfoAsset;
-    string token;
-
-
-    private void Awake()
-    {
-        if (flatironInfoAsset.RuntimeKeyIsValid())
-            LoadFlatironInfo();
-    }
-
-
     /// <summary>
     /// Rotate phi and theta to match IBL coordinates
     /// </summary>
@@ -48,18 +37,6 @@ public class Utils : MonoBehaviour
         float worldPhi = -iblAngles.x - 90f;
         float worldTheta = -iblAngles.y;
         return new Vector3(worldPhi, worldTheta, iblAngles.z);
-    }
-
-
-    private async void LoadFlatironInfo()
-    {
-        AsyncOperationHandle loadHandle = Addressables.LoadAssetAsync<TextAsset>(flatironInfoAsset);
-        await loadHandle.Task;
-
-        string[] lines = ((TextAsset)loadHandle.Result).text.Split('\n');
-
-        token = lines[0];
-        Addressables.Release(loadHandle);
     }
 
 
