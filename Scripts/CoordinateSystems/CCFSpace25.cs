@@ -9,9 +9,9 @@ namespace CoordinateSpaces
     /// </summary>
     public sealed class CCFSpace25 : CoordinateSpace
     {
-        private string _name = "CCF_25um";
-        private Vector3 _dimensions = new Vector3(528, 456, 320);
-        private Vector3 _zeroOffset = new Vector3(-5.7f, -4.0f, +6.6f);
+        private static string _name = "CCF_25um";
+        private static Vector3 _dimensions = new Vector3(528, 456, 320);
+        private static Vector3 _zeroOffset = new Vector3(-5.7f, -4.0f, +6.6f);
 
 
         public override Vector3 Dimensions

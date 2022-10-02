@@ -31,7 +31,7 @@ public class VolumeDatasetManager : MonoBehaviour
         dataLoaders.Add(dataTask);
 
 
-        Task<List<byte[]>> annotationTask = AddressablesRemoteLoader.LoadAnnotationIndexMap();
+        Task<(byte[] index, byte[] map)> annotationTask = AddressablesRemoteLoader.LoadAnnotationIndexMap();
         dataLoaders.Add(annotationTask);
 
         await Task.WhenAll(dataLoaders);
@@ -39,11 +39,11 @@ public class VolumeDatasetManager : MonoBehaviour
         // When all loaded, copy the data locally using Buffer.BlockCopy()
         datasetIndexes_bytes = dataTask.Result;
 
-        annotationIndexes_shorts = new ushort[annotationTask.Result[0].Length / 2];
-        Buffer.BlockCopy(annotationTask.Result[0], 0, annotationIndexes_shorts, 0, annotationTask.Result[0].Length);
+        annotationIndexes_shorts = new ushort[annotationTask.Result.index.Length / 2];
+        Buffer.BlockCopy(annotationTask.Result.index, 0, annotationIndexes_shorts, 0, annotationTask.Result.index.Length);
 
-        annotationMap_ints = new uint[annotationTask.Result[1].Length / 4];
-        Buffer.BlockCopy(annotationTask.Result[1], 0, annotationMap_ints, 0, annotationTask.Result[1].Length);
+        annotationMap_ints = new uint[annotationTask.Result.map.Length / 4];
+        Buffer.BlockCopy(annotationTask.Result.map, 0, annotationMap_ints, 0, annotationTask.Result.map.Length);
 
         Debug.Log("(VDManager) Annotation dataset files loaded, building dataset");
 

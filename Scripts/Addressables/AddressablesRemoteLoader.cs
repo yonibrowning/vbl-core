@@ -203,7 +203,7 @@ public class AddressablesRemoteLoader : MonoBehaviour
     /// Loads the annotation data to be reconstructed by the VolumeDatasetManager
     /// </summary>
     /// <returns>List of TextAssets where [0] is the index and [1] is the map</returns>
-    public static async Task<List<byte[]>> LoadAnnotationIndexMap()
+    public static async Task<(byte[] index, byte[] map)> LoadAnnotationIndexMap()
     {
 #if UNITY_EDITOR
         Debug.Log("Loading annotation index mapping");
@@ -213,21 +213,17 @@ public class AddressablesRemoteLoader : MonoBehaviour
         await catalogLoadedTask;
 
         string annIndexPath = "Assets/AddressableAssets/Datasets/ann/annotation_indexes.bytes";
-        string annMapPath = "Assets/AddressableAssets/Datasets/ann/annotation_map.bytes";
-
         AsyncOperationHandle indexHandle = Addressables.LoadAssetAsync<TextAsset>(annIndexPath);
+        await indexHandle.Task;
+
+        string annMapPath = "Assets/AddressableAssets/Datasets/ann/annotation_map.bytes";
         AsyncOperationHandle mapHandle = Addressables.LoadAssetAsync<TextAsset>(annMapPath);
+        await mapHandle.Task;
 
-        // Build a list of tasks and await them
-        List<Task> dataLoaders = new List<Task>();
-        dataLoaders.Add(indexHandle.Task);
-        dataLoaders.Add(mapHandle.Task);
-        await Task.WhenAll(dataLoaders);
-
-        List<byte[]> returnList = new List<byte[]>() { ((TextAsset)indexHandle.Result).bytes, ((TextAsset)mapHandle.Result).bytes };
+        (byte[] index, byte[] map) data = (((TextAsset)indexHandle.Result).bytes, ((TextAsset)mapHandle.Result).bytes );
         Addressables.Release(indexHandle);
         Addressables.Release(mapHandle);
 
-        return returnList;
+        return data;
     }
 }
