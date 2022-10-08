@@ -133,7 +133,7 @@ public class CCFTreeNode
             _nodeModelParentGO.transform.localRotation = Quaternion.identity;
         }
 
-        if (loadFull)
+        if (loadFull && _nodeModelGO == null)
         {
             string path = ID + ".obj";
             Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
@@ -160,7 +160,7 @@ public class CCFTreeNode
             _loadedSourceFull.SetResult(true);
         }
 
-        if (loadSeparated)
+        if (loadSeparated && _nodeModelLeftGO == null)
         {
             string path = ID + "L.obj";
             Task<Mesh> meshTask = AddressablesRemoteLoader.LoadCCFMesh(path);
@@ -335,6 +335,7 @@ public class CCFTreeNode
 
     public void SetNodeModelVisibility_Full(bool visible)
     {
+        Debug.Log(visible);
         if (_nodeModelGO != null)
             _nodeModelGO.SetActive(visible);
     }

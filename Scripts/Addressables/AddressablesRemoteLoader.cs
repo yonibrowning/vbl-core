@@ -28,6 +28,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
+        addressablesStorageRemotePath = string.Format("{0}/{1}", addressablesStorageRemotePath, buildVersion);
+
         catalogTargetSetSource = new TaskCompletionSource<bool>();
         catalogTargetSetTask = catalogTargetSetSource.Task;
 
@@ -39,8 +41,6 @@ public class AddressablesRemoteLoader : MonoBehaviour
         // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
         // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
         catalogLoadedTask = AsyncLink2Catalog();
-
-        addressablesStorageRemotePath = string.Format("{0}/{1}", addressablesStorageRemotePath, buildVersion);
     }
 
     //Register to override WebRequests Addressables creates to download
@@ -120,8 +120,6 @@ public class AddressablesRemoteLoader : MonoBehaviour
         // Catalog is loaded, load specified mesh file
         string path = "Assets/AddressableAssets/AllenCCF/" + objPath;
         // Not sure why this extra path check is here, I think maybe some objects don't exist and so this hangs indefinitely for those?
-        AsyncOperationHandle<IList<IResourceLocation>> pathHandle = Addressables.LoadResourceLocationsAsync(path);
-        await pathHandle.Task;
 
         AsyncOperationHandle<Mesh> loadHandle = Addressables.LoadAssetAsync<Mesh>(path);
         await loadHandle.Task;
@@ -135,10 +133,9 @@ public class AddressablesRemoteLoader : MonoBehaviour
         returnMesh.colors = loadHandle.Result.colors;
         returnMesh.tangents = loadHandle.Result.tangents;
 
-        Addressables.Release(pathHandle);
-        Addressables.Release(loadHandle);
+        //Addressables.Release(loadHandle);
 
-        return returnMesh;
+        return loadHandle.Result;
     }
 
     public static async Task<string> LoadAllenCCFOntology()
