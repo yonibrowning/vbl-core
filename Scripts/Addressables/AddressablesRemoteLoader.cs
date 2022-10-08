@@ -10,7 +10,7 @@ using UnityEngine.ResourceManagement.ResourceLocations;
 public class AddressablesRemoteLoader : MonoBehaviour
 {
     [SerializeField] private string addressablesStorageRemotePath = "https://data.virtualbrainlab.org/AddressablesStorage";
-    [SerializeField] private string buildVersion = "0.2.1";
+    [SerializeField] private string buildVersion = "0.2.2";
 
     private string fileEnding = ".json";
     private string addressablesStorageTargetPath;
@@ -39,6 +39,8 @@ public class AddressablesRemoteLoader : MonoBehaviour
         // in Awake() we **CANNOT** call any of the Load() functions from another classes Awake() function.
         // Technically this is consistent with Unity's Awake/Start architecture, but it's still a little annoying.
         catalogLoadedTask = AsyncLink2Catalog();
+
+        addressablesStorageRemotePath = string.Format("{0}/{1}", addressablesStorageRemotePath, buildVersion);
     }
 
     //Register to override WebRequests Addressables creates to download
