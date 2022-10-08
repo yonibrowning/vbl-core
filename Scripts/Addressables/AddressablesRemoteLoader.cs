@@ -125,13 +125,13 @@ public class AddressablesRemoteLoader : MonoBehaviour
         await loadHandle.Task;
 
         // Copy the mesh so that we can modify it without modifying the original
-        Mesh returnMesh = new Mesh();
-        returnMesh.vertices = loadHandle.Result.vertices;
-        returnMesh.triangles = loadHandle.Result.triangles;
-        returnMesh.uv = loadHandle.Result.uv;
-        returnMesh.normals = loadHandle.Result.normals;
-        returnMesh.colors = loadHandle.Result.colors;
-        returnMesh.tangents = loadHandle.Result.tangents;
+        //Mesh returnMesh = new Mesh();
+        //returnMesh.vertices = loadHandle.Result.vertices;
+        //returnMesh.triangles = loadHandle.Result.triangles;
+        //returnMesh.uv = loadHandle.Result.uv;
+        //returnMesh.normals = loadHandle.Result.normals;
+        //returnMesh.colors = loadHandle.Result.colors;
+        //returnMesh.tangents = loadHandle.Result.tangents;
 
         //Addressables.Release(loadHandle);
 
