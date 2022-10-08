@@ -38,8 +38,6 @@ public class CCFModelControl : MonoBehaviour
     [SerializeField] List<Material> brainRegionMaterials;
     [SerializeField] List<string> brainRegionMaterialNames;
 
-    [SerializeField] private float modelScale;
-
     private Material defaultBrainRegionMaterial;
 
     private List<CCFTreeNode> defaultLoadedNodes;
@@ -149,7 +147,7 @@ public class CCFModelControl : MonoBehaviour
 
             if (name.Equals("root"))
             {
-                tree = new CCFTree(id, atlas_id, "root", modelScale, color, defaultBrainRegionMaterial);
+                tree = new CCFTree(id, atlas_id, "root", color, defaultBrainRegionMaterial);
             }
             else
             {

@@ -302,6 +302,11 @@ public class BrainCameraController : MonoBehaviour
         ApplyBrainCameraPositionAndRotation();
     }
 
+    public void SetCameraPan(Vector3 panXY)
+    {
+        brainCamera.transform.localPosition = panXY;
+    }
+
     public Camera GetCamera()
     {
         return brainCamera;

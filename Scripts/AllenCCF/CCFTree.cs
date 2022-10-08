@@ -7,16 +7,14 @@ public class CCFTree
 {
     public CCFTreeNode root;
     private Material brainRegionMaterial;
-    private float scale;
     private Dictionary<int, CCFTreeNode> fastSearchDictionary;
     private Transform brainModelParent;
 
-    public CCFTree(int rootID, int atlasID, string rootName, float scale, Color color, Material material)
+    public CCFTree(int rootID, int atlasID, string rootName, Color color, Material material)
     {
         brainModelParent = GameObject.Find("BrainAreas").transform;
 
-        this.scale = scale;
-        root = new CCFTreeNode(rootID, atlasID, 0, scale, null, rootName, "", color, material, brainModelParent);
+        root = new CCFTreeNode(rootID, atlasID, 0, null, rootName, "", color, material, brainModelParent);
         brainRegionMaterial = material;
 
         fastSearchDictionary = new Dictionary<int, CCFTreeNode>();
@@ -33,7 +31,7 @@ public class CCFTree
         if (parentNode==null) {Debug.Log("Can't add new node: parent not found");return null;}
 
         // add the node if you succeeded
-        CCFTreeNode newNode = new CCFTreeNode(id, atlasID, depth, scale, parentNode, name, acronym, color, brainRegionMaterial, brainModelParent);
+        CCFTreeNode newNode = new CCFTreeNode(id, atlasID, depth, parentNode, name, acronym, color, brainRegionMaterial, brainModelParent);
         parentNode.appendNode(newNode);
 
         fastSearchDictionary.Add(id, newNode);
@@ -71,7 +69,6 @@ public class CCFTreeNode
     public int Depth { get; }
     private Color _defaultColor;
     private Color _color;
-    private float _scale;
 
     public Color Color { get { return _color; } }
     public Color DefaultColor { get { return _defaultColor; } }
@@ -97,14 +94,13 @@ public class CCFTreeNode
     private TaskCompletionSource<bool> _loadedSourceFull;
     private TaskCompletionSource<bool> _loadedSourceSeparated;
 
-    public CCFTreeNode(int ID, int atlasID, int depth, float scale, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
+    public CCFTreeNode(int ID, int atlasID, int depth, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
         this.ID = ID;
         this.AtlasID = atlasID;
         this.Name = Name;
         this.parent = parent;
         this.Depth = depth;
-        this._scale = scale;
         this.ShortName = ShortName;
         color.a = 1.0f;
         this._color = color;
@@ -129,10 +125,13 @@ public class CCFTreeNode
 
     public async void LoadNodeModel(bool loadFull, bool loadSeparated)
     {
-        _nodeModelParentGO = new GameObject(Name);
-        _nodeModelParentGO.transform.parent = _brainModelParent;
-        _nodeModelParentGO.transform.localPosition = Vector3.zero;
-        _nodeModelParentGO.transform.localRotation = Quaternion.identity;
+        if (_nodeModelParentGO == null)
+        {
+            _nodeModelParentGO = new GameObject(Name);
+            _nodeModelParentGO.transform.parent = _brainModelParent;
+            _nodeModelParentGO.transform.localPosition = Vector3.zero;
+            _nodeModelParentGO.transform.localRotation = Quaternion.identity;
+        }
 
         if (loadFull)
         {
@@ -142,7 +141,6 @@ public class CCFTreeNode
 
             _nodeModelGO = new GameObject(Name);
             _nodeModelGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelGO.transform.localScale = new Vector3(_scale, _scale, _scale);
             _nodeModelGO.AddComponent<MeshFilter>();
             _nodeModelGO.AddComponent<MeshRenderer>();
             _nodeModelGO.layer = 13;
@@ -154,6 +152,7 @@ public class CCFTreeNode
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _nodeModelGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
 
+            _nodeModelGO.transform.localScale = new Vector3(0.001f, 0.001f, 0.001f);
             _nodeModelGO.transform.localPosition = Vector3.zero;
             _nodeModelGO.transform.localRotation = Quaternion.identity;
             _nodeModelGO.SetActive(false);
@@ -170,7 +169,6 @@ public class CCFTreeNode
             // Create the left/right meshes
             _nodeModelLeftGO = new GameObject(Name + "_L");
             _nodeModelLeftGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelLeftGO.transform.localScale = new Vector3(_scale, _scale, _scale);
             _nodeModelLeftGO.AddComponent<MeshFilter>();
             _nodeModelLeftGO.AddComponent<MeshRenderer>();
             _nodeModelLeftGO.layer = 13;
@@ -190,7 +188,6 @@ public class CCFTreeNode
             // Create the right meshes
             _nodeModelRightGO = new GameObject(Name + "_R");
             _nodeModelRightGO.transform.SetParent(_nodeModelParentGO.transform);
-            _nodeModelRightGO.transform.localScale = new Vector3(_scale, _scale, -_scale);
             _nodeModelRightGO.AddComponent<MeshFilter>();
             _nodeModelRightGO.AddComponent<MeshRenderer>();
             _nodeModelRightGO.layer = 13;
@@ -202,7 +199,8 @@ public class CCFTreeNode
             rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _nodeModelRightGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
 
-            _nodeModelRightGO.transform.localPosition = Vector3.zero;
+            _nodeModelRightGO.transform.localScale = new Vector3(1f, 1f, -1f);
+            _nodeModelRightGO.transform.localPosition = new Vector3(0f, 0f, 11.4f);
             _nodeModelRightGO.transform.localRotation = Quaternion.identity;
             _nodeModelRightGO.SetActive(false);
 
@@ -335,17 +333,21 @@ public class CCFTreeNode
             Debug.LogError("Model must be loaded before rendering");
     }
 
-
-    public void SetNodeModelVisibility(bool fullVisible = false, bool leftVisible = false, bool rightVisible = false)
+    public void SetNodeModelVisibility_Full(bool visible)
     {
         if (_nodeModelGO != null)
-            _nodeModelGO.SetActive(fullVisible);
-
+            _nodeModelGO.SetActive(visible);
+    }
+    public void SetNodeModelVisibility_Left(bool visible)
+    {
         if (_nodeModelLeftGO != null)
-        {
-            _nodeModelLeftGO.SetActive(leftVisible);
-            _nodeModelRightGO.SetActive(rightVisible);
-        }
+            _nodeModelLeftGO.SetActive(visible);
+    }
+
+    public void SetNodeModelVisibility_Right(bool visible)
+    {
+        if (_nodeModelRightGO != null)
+            _nodeModelRightGO.SetActive(visible);
     }
 
     public int nodeCount()
