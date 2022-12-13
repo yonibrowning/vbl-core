@@ -68,9 +68,8 @@ public class CCFTreeNode
     public string ShortName { get; }
     public int Depth { get; }
     private Color _defaultColor;
-    private Color _color;
 
-    public Color Color { get { return _color; } }
+    public Color color { get; private set; }
     public Color DefaultColor { get { return _defaultColor; } }
 
     #region gameobjects
@@ -91,22 +90,23 @@ public class CCFTreeNode
     private Vector3[] verticesFull;
     private Vector3[] verticesSided;
 
+    private bool loading;
     private TaskCompletionSource<bool> _loadedSourceFull;
     private TaskCompletionSource<bool> _loadedSourceSeparated;
 
     public CCFTreeNode(int ID, int atlasID, int depth, CCFTreeNode parent, string Name, string ShortName, Color color, Material material, Transform brainModelParent)
     {
         this.ID = ID;
-        this.AtlasID = atlasID;
+        AtlasID = atlasID;
         this.Name = Name;
         this.parent = parent;
-        this.Depth = depth;
+        Depth = depth;
         this.ShortName = ShortName;
         color.a = 1.0f;
-        this._color = color;
+        this.color = color;
         _defaultColor = new Color(color.r, color.g, color.b, color.a);
-        this._material = material;
-        this._brainModelParent = brainModelParent;
+        _material = material;
+        _brainModelParent = brainModelParent;
         childNodes = new List<CCFTreeNode>();
 
         _loadedSourceFull = new TaskCompletionSource<bool>();
@@ -125,6 +125,10 @@ public class CCFTreeNode
 
     public async void LoadNodeModel(bool loadFull, bool loadSeparated)
     {
+        if (loading)
+            return;
+        loading = true;
+
         if (_nodeModelParentGO == null)
         {
             _nodeModelParentGO = new GameObject(Name);
@@ -147,7 +151,7 @@ public class CCFTreeNode
             _nodeModelGO.tag = "BrainRegion";
             Renderer rend = _nodeModelGO.GetComponent<Renderer>();
             rend.material = _material;
-            rend.material.SetColor("_Color", _color);
+            rend.material.SetColor("_Color", color);
             rend.receiveShadows = false;
             rend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _nodeModelGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
@@ -175,7 +179,7 @@ public class CCFTreeNode
             _nodeModelLeftGO.tag = "BrainRegion";
             Renderer leftRend = _nodeModelLeftGO.GetComponent<Renderer>();
             leftRend.material = _material;
-            leftRend.material.SetColor("_Color", _color);
+            leftRend.material.SetColor("_Color", color);
             leftRend.receiveShadows = false;
             leftRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _nodeModelLeftGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
@@ -194,7 +198,7 @@ public class CCFTreeNode
             _nodeModelRightGO.tag = "BrainRegion";
             Renderer rightRend = _nodeModelRightGO.GetComponent<Renderer>();
             rightRend.material = _material;
-            rightRend.material.SetColor("_Color", _color);
+            rightRend.material.SetColor("_Color", color);
             rightRend.receiveShadows = false;
             rightRend.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             _nodeModelRightGO.GetComponent<MeshFilter>().mesh = meshTask.Result;
@@ -225,7 +229,7 @@ public class CCFTreeNode
     public void SetColor(Color newColor, bool saveColor = true)
     {
         if (saveColor)
-            _color = newColor;
+            color = newColor;
 
         if (_nodeModelGO != null)
             _nodeModelGO.GetComponent<Renderer>().material.SetColor("_Color", newColor);
@@ -240,7 +244,7 @@ public class CCFTreeNode
     public void SetColorOneSided(Color newColor, bool leftSide, bool saveColor = true)
     {
         if (saveColor)
-            _color = newColor;
+            color = newColor;
 
         if (_nodeModelLeftGO != null)
         {
@@ -265,7 +269,7 @@ public class CCFTreeNode
             _nodeModelRightGO.GetComponent<Renderer>().material = newMaterial;
         }
 
-        SetColor(_color, false);
+        SetColor(color, false);
     }
     public void SetMaterialOneSided(Material newMaterial, bool leftSide)
     {
@@ -281,7 +285,7 @@ public class CCFTreeNode
         else
             Debug.LogError("Model must be loaded before rendering");
 
-        SetColorOneSided(_color, leftSide, false);
+        SetColorOneSided(color, leftSide, false);
     }
 
     public void SetShaderProperty(string property, Vector4 value)
