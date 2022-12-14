@@ -101,7 +101,7 @@ public class BrainCameraController : MonoBehaviour
             totalSpin += autoRotateSpeed * Time.deltaTime;
             ApplyBrainCameraPositionAndRotation();
         }
-        else
+        else if (!Input.GetMouseButtonDown(0))
             BrainCameraControl_noTarget();
     }
 
