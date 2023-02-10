@@ -90,7 +90,6 @@ public class CCFTreeNode
     private Vector3[] verticesFull;
     private Vector3[] verticesSided;
 
-    private bool loading;
     private TaskCompletionSource<bool> _loadedSourceFull;
     private TaskCompletionSource<bool> _loadedSourceSeparated;
 
@@ -125,10 +124,6 @@ public class CCFTreeNode
 
     public async void LoadNodeModel(bool loadFull, bool loadSeparated)
     {
-        if (loading)
-            return;
-        loading = true;
-
         if (_nodeModelParentGO == null)
         {
             _nodeModelParentGO = new GameObject(Name);
