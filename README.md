@@ -1,4 +1,4 @@
-# vbl-core
+# vbl-core [DEPRECATED]
 Virtual Brain Lab core libraries and assets
 
 # submodule
