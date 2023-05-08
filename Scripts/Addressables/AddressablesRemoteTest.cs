@@ -22,7 +22,7 @@ public class AddressablesRemoteTest : MonoBehaviour
 
         Debug.Log("Loaded texture");
 
-        Task<byte[]> volumeHandle = AddressablesRemoteLoader.LoadVolumeIndexes();
+        Task<TextAsset> volumeHandle = AddressablesRemoteLoader.LoadVolumeIndexes();
         await volumeHandle;
 
         Debug.Log("Loaded volume indices");
